@@ -11,47 +11,47 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/particlesjs/2.2.3/particles.min.js"></script>
     <style>
-        /* 기본 설정 및 리셋 */
+        /* 기본 설정 및 리셋 - 흑백 테마로 변경 */
         :root {
-            /* iOS 15 스타일 색상 시스템 */
-            --primary: #007AFF;
-            --primary-dark: #0062CC;
-            --primary-light: #66AFFF;
-            --accent: #FF2D55;
-            --accent-secondary: #5AC8FA;
-            --accent-tertiary: #AF52DE;
-            --system-green: #34C759;
-            --system-yellow: #FFCC00;
-            --system-orange: #FF9500;
-            --text-primary: #1D1D1F;
-            --text-secondary: #86868B;
-            --text-tertiary: #6E6E73;
+            /* 흑백 스타일 색상 시스템 */
+            --primary: #000000;
+            --primary-dark: #111111;
+            --primary-light: #333333;
+            --accent: #000000;
+            --accent-secondary: #333333;
+            --accent-tertiary: #555555;
+            --system-green: #000000;
+            --system-yellow: #000000;
+            --system-orange: #000000;
+            --text-primary: #000000;
+            --text-secondary: #333333;
+            --text-tertiary: #555555;
             --background: #FFFFFF;
-            --background-alt: #F5F5F7;
-            --background-tertiary: #FBFBFD;
-            --separator: #D2D2D7;
-            --glass-bg: rgba(255, 255, 255, 0.7);
+            --background-alt: #F7F7F7;
+            --background-tertiary: #FAFAFA;
+            --separator: #E0E0E0;
+            --glass-bg: rgba(255, 255, 255, 0.8);
             --glass-border: rgba(255, 255, 255, 0.2);
-            --glass-shadow: rgba(31, 38, 135, 0.15);
+            --glass-shadow: rgba(0, 0, 0, 0.1);
             
-            /* iOS 15 동적 패딩 및 간격 */
+            /* 동적 패딩 및 간격 */
             --dynamic-padding-sm: 1rem;
             --dynamic-padding-md: clamp(1rem, 4vw, 2rem);
             --dynamic-padding-lg: clamp(2rem, 8vw, 4rem);
             
-            /* iOS 15 모서리 반경 */
+            /* 모서리 반경 */
             --radius-sm: 8px;
             --radius-md: 12px;
             --radius-lg: 20px;
             --radius-xl: 28px;
             
-            /* iOS 15 스타일 그림자 */
+            /* 그림자 */
             --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
             --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
             --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
             --shadow-xl: 0 12px 32px rgba(0, 0, 0, 0.16);
             
-            /* iOS 15 이징 */
+            /* 이징 */
             --ease-ios: cubic-bezier(0.23, 1, 0.32, 1);
             --ease-spring: cubic-bezier(0.25, 0.46, 0.45, 0.94);
             --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -66,35 +66,42 @@
         }
         
         @font-face {
-            font-family: 'SF Pro Display';
-            src: url('https://applesocial.s3.amazonaws.com/assets/styles/fonts/sanfrancisco/sanfranciscodisplay-regular-webfont.woff');
-            font-weight: 400;
-            font-display: swap;
+            font-family: 'Paperlogy-8ExtraBold';
+            src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-8ExtraBold.woff2') format('woff2');
+            font-weight: 800;
+            font-style: normal;
         }
         
         @font-face {
-            font-family: 'SF Pro Display';
-            src: url('https://applesocial.s3.amazonaws.com/assets/styles/fonts/sanfrancisco/sanfranciscodisplay-medium-webfont.woff');
-            font-weight: 500;
-            font-display: swap;
-        }
-        
-        @font-face {
-            font-family: 'SF Pro Display';
-            src: url('https://applesocial.s3.amazonaws.com/assets/styles/fonts/sanfrancisco/sanfranciscodisplay-semibold-webfont.woff');
-            font-weight: 600;
-            font-display: swap;
-        }
-        
-        @font-face {
-            font-family: 'SF Pro Display';
-            src: url('https://applesocial.s3.amazonaws.com/assets/styles/fonts/sanfrancisco/sanfranciscodisplay-bold-webfont.woff');
+            font-family: 'Paperlogy-8ExtraBold';
+            src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-8ExtraBold.woff2') format('woff2');
             font-weight: 700;
-            font-display: swap;
+            font-style: normal;
+        }
+        
+        @font-face {
+            font-family: 'Paperlogy-8ExtraBold';
+            src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-8ExtraBold.woff2') format('woff2');
+            font-weight: 600;
+            font-style: normal;
+        }
+        
+        @font-face {
+            font-family: 'Paperlogy-8ExtraBold';
+            src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-8ExtraBold.woff2') format('woff2');
+            font-weight: 500;
+            font-style: normal;
+        }
+        
+        @font-face {
+            font-family: 'Paperlogy-8ExtraBold';
+            src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-8ExtraBold.woff2') format('woff2');
+            font-weight: 400;
+            font-style: normal;
         }
         
         html, body {
-            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Paperlogy-8ExtraBold', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             color: var(--text-primary);
             background-color: var(--background);
             overflow-x: hidden;
@@ -109,7 +116,7 @@
             position: relative;
         }
         
-        /* 스크롤바 스타일링 - iOS 스타일 */
+        /* 스크롤바 스타일링 - 흑백 스타일 */
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -128,17 +135,15 @@
             background: rgba(0, 0, 0, 0.2);
         }
         
-        /* 스냅 스크롤 설정 */
+        /* 스냅 스크롤 기능 완전 제거 */
         .snap-container {
             height: 100vh;
-            overflow-y: scroll;
-            scroll-snap-type: y mandatory;
+            overflow-y: auto;
             scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch; /* iOS 관성 스크롤 */
+            -webkit-overflow-scrolling: touch; /* iOS 관성 스크롤 유지 */
         }
         
         .snap-section {
-            scroll-snap-align: start;
             height: 100vh;
             position: relative;
             display: flex;
@@ -146,7 +151,13 @@
             overflow: hidden;
         }
         
-        /* 로더 - iOS 스타일 향상 */
+        /* 기존 스냅 관련 클래스 제거 */
+        .snap-disable {
+            height: auto;
+            min-height: 100vh;
+        }
+        
+        /* 로더 - 흑백 스타일 */
         .loader {
             position: fixed;
             top: 0;
@@ -177,7 +188,7 @@
             width: 80px;
             height: 80px;
             border-radius: var(--radius-lg);
-            background: linear-gradient(135deg, var(--primary), var(--accent));
+            background: linear-gradient(135deg, #000, #444);
             box-shadow: var(--shadow-lg);
             position: relative;
             overflow: hidden;
@@ -208,7 +219,7 @@
         .loader-text {
             font-size: 1.8rem;
             font-weight: 600;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
+            background: linear-gradient(135deg, #000, #444);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
@@ -229,7 +240,7 @@
         .loader-progress-bar {
             height: 100%;
             width: 0;
-            background: linear-gradient(90deg, var(--primary), var(--accent));
+            background: linear-gradient(90deg, #000, #444);
             border-radius: 2px;
             animation: loadProgress 2s var(--ease-spring) forwards;
         }
@@ -250,7 +261,7 @@
             100% { opacity: 1; }
         }
         
-        /* 파티클 캔버스 - 최적화 */
+        /* 파티클 캔버스 - 흑백 최적화 */
         canvas#particles-js {
             position: fixed;
             top: 0;
@@ -258,7 +269,7 @@
             width: 100%;
             height: 100%;
             z-index: -1;
-            opacity: 0.4;
+            opacity: 0.3;
         }
         
         /* 컨테이너 */
@@ -271,7 +282,7 @@
             z-index: 2;
         }
         
-        /* 글라스모피즘 효과 - iOS 15 향상 */
+        /* 글라스모피즘 효과 - 흑백 향상 */
         .glass {
             background: var(--glass-bg);
             backdrop-filter: blur(20px) saturate(180%);
@@ -281,7 +292,7 @@
             border-radius: var(--radius-lg);
         }
         
-        /* 헤더 - iOS 스타일 향상 */
+        /* 헤더 - 흑백 스타일 */
         header {
             position: fixed;
             top: 0;
@@ -292,7 +303,7 @@
             backdrop-filter: blur(20px) saturate(180%);
             -webkit-backdrop-filter: blur(20px) saturate(180%);
             background: rgba(255, 255, 255, 0.8);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         }
         
         header.hidden {
@@ -319,7 +330,7 @@
             width: 32px;
             height: 32px;
             border-radius: var(--radius-sm);
-            background: linear-gradient(135deg, var(--primary), var(--accent));
+            background: linear-gradient(135deg, #000, #444);
             margin-right: 10px;
             position: relative;
             overflow: hidden;
@@ -359,7 +370,7 @@
             left: 0;
             width: 100%;
             height: 2px;
-            background: linear-gradient(90deg, var(--primary), var(--accent));
+            background: linear-gradient(90deg, #000, #444);
             transform: translateX(-100%);
             transition: transform 0.5s var(--ease-ios);
         }
@@ -368,7 +379,7 @@
             transform: translateX(0);
         }
         
-        /* iOS 15 스타일 네비게이션 */
+        /* 네비게이션 - 흑백 스타일 */
         nav ul {
             display: flex;
             list-style: none;
@@ -398,7 +409,7 @@
             left: 0;
             width: 100%;
             height: 1.5px;
-            background: linear-gradient(90deg, var(--primary), var(--accent));
+            background: linear-gradient(90deg, #000, #444);
             transform: scaleX(0);
             transform-origin: right;
             transition: transform 0.3s var(--ease-ios);
@@ -410,7 +421,7 @@
             transform-origin: left;
         }
         
-        /* 페이지 인디케이터 - iOS 스타일 */
+        /* 페이지 인디케이터 - 호버 시 섹션 이름 표시 */
         .page-indicator {
             position: fixed;
             right: 20px;
@@ -420,6 +431,12 @@
             flex-direction: column;
             gap: 12px;
             z-index: 900;
+        }
+        
+        .page-indicator-item {
+            position: relative;
+            display: flex;
+            align-items: center;
         }
         
         .page-indicator-dot {
@@ -434,12 +451,33 @@
         .page-indicator-dot.active {
             background-color: var(--primary);
             transform: scale(1.5);
-            box-shadow: 0 0 10px rgba(0, 122, 255, 0.5);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
         }
         
         .page-indicator-dot:hover {
             transform: scale(1.3);
-            background-color: rgba(0, 122, 255, 0.5);
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        /* 섹션 이름 라벨 - 호버시 표시 */
+        .page-indicator-label {
+            position: absolute;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            transform: translateX(-10px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+        
+        .page-indicator-item:hover .page-indicator-label {
+            opacity: 1;
+            transform: translateX(0);
         }
         
         /* 섹션 공통 스타일 */
@@ -498,13 +536,13 @@
         }
         
         .gradient-text {
-            background: linear-gradient(135deg, var(--primary), var(--accent));
+            background: linear-gradient(135deg, #000, #444);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
         }
         
-        /* 히어로 섹션 - iOS 15 스타일 향상 */
+        /* 히어로 섹션 - 흑백 스타일 */
         .hero {
             background-color: var(--background);
             position: relative;
@@ -543,12 +581,41 @@
             line-height: 1.05;
             letter-spacing: -0.025em;
             margin-bottom: 1.5rem;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
+            background: linear-gradient(135deg, #000, #444);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
             opacity: 0;
             transform: translateY(30px);
+            min-height: 1.05em; /* 텍스트 높이 유지 */
+            position: relative; /* 포지션 설정 */
+        }
+        
+        /* 텍스트가 사라져도 공간 유지를 위한 가상 요소 */
+        .hero-title::after {
+            content: "FLOPY";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            color: transparent;
+            z-index: -1;
+        }
+        
+        /* 깜빡이는 커서 스타일 */
+        .typing-cursor {
+            display: inline-block;
+            width: 3px;
+            height: 1em;
+            background-color: #000;
+            vertical-align: middle;
+            margin-left: 2px;
+            animation: blink 1s step-end infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
         }
         
         .hero-description {
@@ -563,53 +630,32 @@
             margin-right: auto;
         }
         
-        /* iOS 15 스타일 CTA 버튼 */
+        /* 흑백 스타일 CTA 버튼 - 심플화 */
         .hero-cta {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
+            background: linear-gradient(135deg, #000, #333);
             color: white;
             text-decoration: none;
-            padding: 1rem 2.5rem;
+            padding: 0.9rem 2rem;
             border-radius: 30px;
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 500;
             transition: all 0.3s var(--ease-spring);
-            box-shadow: var(--shadow-lg);
+            box-shadow: var(--shadow-md);
             position: relative;
             overflow: hidden;
             opacity: 0;
             transform: translateY(30px);
-            min-width: 200px;
+            min-width: 180px;
             letter-spacing: 0.01em;
         }
         
-        .hero-cta:hover {
-            transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 15px 40px rgba(0, 122, 255, 0.4);
-        }
-        
         .hero-cta:active {
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 8px 20px rgba(0, 122, 255, 0.35);
+            transform: translateY(1px);
         }
         
-        .hero-cta::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.2);
-            transform: skewX(-30deg);
-            transition: 0.5s var(--ease-ios);
-        }
-        
-        .hero-cta:hover::before {
-            left: 100%;
-        }
         
         .hero-image-container {
             position: relative;
@@ -637,20 +683,20 @@
             transform: translate(-50%, -50%);
             width: 80%;
             height: 80%;
-            background: radial-gradient(ellipse at center, rgba(0, 122, 255, 0.3) 0%, rgba(255, 45, 85, 0.1) 50%, rgba(255, 255, 255, 0) 70%);
+            background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.1) 50%, rgba(255, 255, 255, 0) 70%);
             filter: blur(40px);
             z-index: 1;
-            opacity: 0.7;
+            opacity: 0.5;
             animation: pulse 4s infinite alternate;
         }
         
         @keyframes pulse {
             0% {
-                opacity: 0.5;
+                opacity: 0.3;
                 transform: translate(-50%, -50%) scale(0.95);
             }
             100% {
-                opacity: 0.8;
+                opacity: 0.5;
                 transform: translate(-50%, -50%) scale(1.05);
             }
         }
@@ -669,7 +715,7 @@
             position: absolute;
             border-radius: 50%;
             filter: blur(80px);
-            opacity: 0.2;
+            opacity: 0.15;
             z-index: -1;
         }
         
@@ -678,7 +724,7 @@
             right: -10%;
             width: 60%;
             height: 60%;
-            background: radial-gradient(circle, rgba(90, 200, 250, 0.5), rgba(0, 122, 255, 0.2));
+            background: radial-gradient(circle, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.1));
             animation: float1 20s infinite alternate ease-in-out;
         }
         
@@ -687,7 +733,7 @@
             left: -10%;
             width: 70%;
             height: 70%;
-            background: radial-gradient(circle, rgba(255, 45, 85, 0.3), rgba(175, 82, 222, 0.1));
+            background: radial-gradient(circle, rgba(0, 0, 0, 0.2), rgba(100, 100, 100, 0.1));
             animation: float2 25s infinite alternate-reverse ease-in-out;
         }
         
@@ -705,18 +751,19 @@
             100% { transform: translate(-4%, 3%) rotate(-1deg); }
         }
         
-        /* 3D 물결 효과 영역 - 향상 */
+        /* 3D 물결 효과 영역 - 복구 및 개선 */
         #wave-canvas {
             position: absolute;
-            bottom: -100px;
+            top: 0;
             left: 0;
             width: 100%;
-            height: 500px;
-            opacity: 0.4;
+            height: 100%;
+            opacity: 0.3;
             z-index: 1;
+            pointer-events: none; /* 마우스 이벤트 통과 */
         }
         
-        /* 특징 섹션 - iOS 15 스타일 */
+        /* 특징 섹션 - 흑백 스타일 */
         .features {
             background-color: var(--background-alt);
             position: relative;
@@ -761,7 +808,7 @@
             -webkit-backdrop-filter: blur(20px);
             border-radius: var(--radius-xl);
             box-shadow: var(--shadow-md);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(0, 0, 0, 0.05);
             z-index: -1;
         }
         
@@ -771,12 +818,12 @@
             top: 0;
             left: 0;
             width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary), var(--accent));
+            height: 3px;
+            background: linear-gradient(90deg, #000, #444);
             transform: scaleX(0);
             transform-origin: left;
             transition: transform 0.5s var(--ease-spring);
-            border-radius: 4px 4px 0 0;
+            border-radius: 3px 3px 0 0;
         }
         
         .feature-card:hover::after {
@@ -789,7 +836,7 @@
             position: relative;
             display: inline-block;
             z-index: 1;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
+            background: linear-gradient(135deg, #000, #444);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
@@ -802,7 +849,7 @@
             left: 50%;
             width: 80px;
             height: 80px;
-            background: radial-gradient(circle, rgba(0, 122, 255, 0.1), rgba(255, 255, 255, 0));
+            background: radial-gradient(circle, rgba(0, 0, 0, 0.05), rgba(255, 255, 255, 0));
             border-radius: 50%;
             transform: translate(-50%, -50%);
             z-index: -1;
@@ -827,7 +874,7 @@
             font-size: 1.05rem;
         }
         
-        /* 고급 기능 섹션 - iOS 15 스타일 향상 */
+        /* 고급 기능 섹션 - 흑백 스타일 */
         .advanced-features {
             background-color: var(--text-primary);
             color: var(--background);
@@ -883,7 +930,7 @@
             left: 50%;
             width: 100%;
             height: 100%;
-            background: radial-gradient(ellipse at center, rgba(0, 122, 255, 0.3), rgba(255, 255, 255, 0) 70%);
+            background: radial-gradient(ellipse at center, rgba(50, 50, 50, 0.3), rgba(0, 0, 0, 0) 70%);
             transform: translate(-50%, -50%);
             filter: blur(40px);
             z-index: -1;
@@ -911,7 +958,7 @@
             font-size: 5rem;
             font-weight: 700;
             line-height: 1;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
+            background: linear-gradient(135deg, #777, #ccc);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
@@ -950,10 +997,10 @@
         .feature-list-icon {
             margin-right: 1rem;
             font-size: 1.2rem;
-            color: var(--primary);
+            color: #999;
         }
         
-        /* 미리보기 섹션 - iOS 15 스타일 향상 */
+        /* 미리보기 섹션 - 흑백 스타일 */
         .preview {
             background-color: var(--background-tertiary);
             position: relative;
@@ -1005,7 +1052,7 @@
             box-shadow: 0 30px 70px rgba(0, 0, 0, 0.2);
         }
         
-        /* iOS 15 스타일 캐러셀 네비게이션 */
+        /* 흑백 스타일 캐러셀 네비게이션 */
         .carousel-nav {
             display: flex;
             justify-content: center;
@@ -1025,10 +1072,10 @@
         .carousel-dot.active {
             background-color: var(--primary);
             transform: scale(1.3);
-            box-shadow: 0 0 10px rgba(0, 122, 255, 0.3);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
         }
         
-        /* 다운로드 섹션 - iOS 15 스타일 향상 */
+        /* 다운로드 섹션 - 흑백 스타일 */
         .download {
             background-color: var(--background);
             position: relative;
@@ -1072,7 +1119,7 @@
             -webkit-backdrop-filter: blur(20px);
             border-radius: var(--radius-xl);
             box-shadow: var(--shadow-lg);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(0, 0, 0, 0.05);
             z-index: -1;
         }
         
@@ -1083,20 +1130,20 @@
             transform: translate(-50%, -50%);
             width: 80%;
             height: 80%;
-            background: radial-gradient(ellipse at center, rgba(0, 122, 255, 0.2), rgba(255, 255, 255, 0) 70%);
+            background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.1), rgba(255, 255, 255, 0) 70%);
             filter: blur(40px);
             z-index: -2;
-            opacity: 0.7;
+            opacity: 0.5;
             animation: cardPulse 4s infinite alternate;
         }
         
         @keyframes cardPulse {
             0% {
-                opacity: 0.5;
+                opacity: 0.3;
                 transform: translate(-50%, -50%) scale(0.95);
             }
             100% {
-                opacity: 0.8;
+                opacity: 0.5;
                 transform: translate(-50%, -50%) scale(1.05);
             }
         }
@@ -1121,45 +1168,27 @@
             line-height: 1.5;
         }
         
-        /* iOS 15 스타일 다운로드 버튼 */
+        /* 흑백 스타일 다운로드 버튼 - 심플화 */
         .download-button {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
+            background: linear-gradient(135deg, #000, #333);
             color: white;
             text-decoration: none;
-            padding: 1rem 2.5rem;
+            padding: 0.9rem 2rem;
             border-radius: 30px;
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 500;
             transition: all 0.3s var(--ease-spring);
-            box-shadow: var(--shadow-lg);
+            box-shadow: var(--shadow-md);
             position: relative;
             overflow: hidden;
-            min-width: 220px;
+            min-width: 200px;
         }
         
-        .download-button:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0, 122, 255, 0.4);
-        }
-        
-        .download-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.2);
-            transform: skewX(-30deg);
-            transition: 0.5s var(--ease-ios);
-            z-index: 1;
-        }
-        
-        .download-button:hover::before {
-            left: 100%;
+        .download-button:active {
+            transform: translateY(1px);
         }
         
         .download-button-text {
@@ -1173,7 +1202,7 @@
             font-size: 1rem;
         }
         
-        /* FAQ 섹션 - iOS 15 스타일 향상 */
+        /* FAQ 섹션 - 흑백 스타일 및 스크롤 버그 수정 */
         .faq {
             background-color: var(--background-alt);
             position: relative;
@@ -1213,7 +1242,7 @@
             -webkit-backdrop-filter: blur(10px);
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow-sm);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(0, 0, 0, 0.05);
             z-index: -1;
             transition: all 0.3s var(--ease-ios);
         }
@@ -1286,9 +1315,9 @@
             padding-bottom: 1.5rem;
         }
         
-        /* CTA 섹션 - iOS 15 스타일 향상 */
+        /* CTA 섹션 - 흑백 스타일 */
         .cta {
-            background: linear-gradient(135deg, var(--primary), var(--accent));
+            background: linear-gradient(135deg, #000, #444);
             color: white;
             text-align: center;
             padding: 7rem 0;
@@ -1318,7 +1347,7 @@
             transform: translateY(30px);
         }
         
-        /* iOS 15 스타일 CTA 버튼 */
+        /* 흑백 스타일 CTA 버튼 - 심플화 */
         .cta-button {
             display: inline-flex;
             align-items: center;
@@ -1326,38 +1355,21 @@
             background-color: white;
             color: var(--primary);
             text-decoration: none;
-            padding: 1rem 3rem;
+            padding: 0.9rem 2.5rem;
             border-radius: 30px;
             font-size: 1.1rem;
             font-weight: 600;
             transition: all 0.3s var(--ease-spring);
-            box-shadow: var(--shadow-lg);
+            box-shadow: var(--shadow-md);
             position: relative;
             overflow: hidden;
             opacity: 0;
             transform: translateY(30px);
-            min-width: 220px;
+            min-width: 200px;
         }
         
-        .cta-button:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
-        }
-        
-        .cta-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 122, 255, 0.1);
-            transform: skewX(-30deg);
-            transition: 0.5s var(--ease-ios);
-        }
-        
-        .cta-button:hover::before {
-            left: 100%;
+        .cta-button:active {
+            transform: translateY(1px);
         }
         
         .cta-bg {
@@ -1381,19 +1393,19 @@
             }
         }
         
-        /* 스크롤 진행 표시기 - iOS 15 스타일 */
+        /* 스크롤 진행 표시기 - 흑백 스타일 */
         .scroll-progress {
             position: fixed;
             top: 0;
             left: 0;
             width: 0;
             height: 3px;
-            background: linear-gradient(90deg, var(--primary), var(--accent));
+            background: linear-gradient(90deg, #000, #444);
             z-index: 9999;
             transition: width 0.1s;
         }
         
-        /* 스크롤 위로 버튼 - iOS 15 스타일 */
+        /* 스크롤 위로 버튼 - 흑백 스타일 */
         .scroll-top {
             position: fixed;
             bottom: 30px;
@@ -1422,7 +1434,7 @@
             background-color: var(--primary);
             color: white;
             transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0, 122, 255, 0.3);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }
         
         .scroll-top-arrow {
@@ -1439,7 +1451,7 @@
             border-color: white;
         }
         
-        /* 쿠키 메시지 - iOS 15 스타일 */
+        /* 쿠키 메시지 - 흑백 스타일 */
         .cookie-message {
             position: fixed;
             bottom: 20px;
@@ -1469,7 +1481,7 @@
             z-index: -1;
             box-shadow: var(--shadow-lg);
             border-radius: var(--radius-lg);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(0, 0, 0, 0.05);
         }
         
         .cookie-message.show {
@@ -1492,7 +1504,7 @@
         }
         
         .cookie-accept {
-            background: linear-gradient(135deg, var(--primary), var(--accent));
+            background: linear-gradient(135deg, #000, #444);
             color: white;
             border: none;
             padding: 0.7rem 1.5rem;
@@ -1504,10 +1516,10 @@
         
         .cookie-accept:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 122, 255, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
         
-        /* 플로팅 버블 효과 - iOS 15 스타일 */
+        /* 플로팅 버블 효과 - 흑백 스타일 */
         .bubble {
             position: absolute;
             border-radius: 50%;
@@ -1515,9 +1527,9 @@
             backdrop-filter: blur(5px);
             -webkit-backdrop-filter: blur(5px);
             box-shadow: var(--shadow-sm);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(0, 0, 0, 0.05);
             z-index: -1;
-            opacity: 0.6;
+            opacity: 0.4;
             animation: float 15s infinite ease-in-out;
         }
         
@@ -1655,7 +1667,7 @@
     <div class="loader">
         <div class="loader-content">
             <div class="loader-logo"></div>
-            <div class="loader-text">flopy</div>
+            <div class="loader-text">FLOPY</div>
             <div class="loader-progress">
                 <div class="loader-progress-bar"></div>
             </div>
@@ -1670,12 +1682,12 @@
         <div class="header-container">
             <a href="#" class="logo">
                 <div class="logo-icon"></div>
-                <span class="logo-text">flopy</span>
+                <div class="logo-text">FLOPY</div>
             </a>
             <nav>
                 <ul>
                     <li><a href="#features">기능</a></li>
-                    <li><a href="#advanced-features">고급 기능</a></li>
+                    <li><a href="#advanced">고급 기능</a></li>
                     <li><a href="#preview">미리보기</a></li>
                     <li><a href="#download">다운로드</a></li>
                     <li><a href="#faq">FAQ</a></li>
@@ -1684,15 +1696,36 @@
         </div>
     </header>
     
-    <!-- 페이지 인디케이터 (iOS 스타일) -->
+    <!-- 페이지 인디케이터 (섹션 이름 표시 추가) -->
     <div class="page-indicator">
-        <div class="page-indicator-dot active" data-section="hero"></div>
-        <div class="page-indicator-dot" data-section="features"></div>
-        <div class="page-indicator-dot" data-section="advanced-features"></div>
-        <div class="page-indicator-dot" data-section="preview"></div>
-        <div class="page-indicator-dot" data-section="download"></div>
-        <div class="page-indicator-dot" data-section="faq"></div>
-        <div class="page-indicator-dot" data-section="cta"></div>
+        <div class="page-indicator-item">
+            <div class="page-indicator-dot active" data-section="hero"></div>
+            <div class="page-indicator-label">홈</div>
+        </div>
+        <div class="page-indicator-item">
+            <div class="page-indicator-dot" data-section="features"></div>
+            <div class="page-indicator-label">기능</div>
+        </div>
+        <div class="page-indicator-item">
+            <div class="page-indicator-dot" data-section="advanced"></div>
+            <div class="page-indicator-label">고급 기능</div>
+        </div>
+        <div class="page-indicator-item">
+            <div class="page-indicator-dot" data-section="preview"></div>
+            <div class="page-indicator-label">미리보기</div>
+        </div>
+        <div class="page-indicator-item">
+            <div class="page-indicator-dot" data-section="download"></div>
+            <div class="page-indicator-label">다운로드</div>
+        </div>
+        <div class="page-indicator-item">
+            <div class="page-indicator-dot" data-section="faq"></div>
+            <div class="page-indicator-label">FAQ</div>
+        </div>
+        <div class="page-indicator-item">
+            <div class="page-indicator-dot" data-section="cta"></div>
+            <div class="page-indicator-label">경험하기</div>
+        </div>
     </div>
     
     <!-- 스냅 스크롤 컨테이너 -->
@@ -1707,7 +1740,7 @@
             <div class="container hero-container">
                 <div class="hero-content">
                     <div class="hero-eyebrow">Beta</div>
-                    <h1 class="hero-title">flopy</h1>
+                    <h1 class="hero-title">FLOPY</h1>
                     <p class="hero-description">심플한 디자인의 완벽한 투명 플로팅 이미지로 트레이싱을 편하게 해보세요.</p>
                     <a href="#download" class="hero-cta">
                         <span>무료로 다운로드</span>
@@ -1767,8 +1800,8 @@
             </div>
         </section>
         
-        <!-- 고급 기능 섹션 -->
-        <section id="advanced-features" class="advanced-features snap-section">
+    <!-- 고급 기능 섹션 - 스냅 문제 해결 위해 id 변경 -->
+        <section id="advanced" class="advanced-features snap-section">
             <div class="container">
                 <div class="section-content">
                     <h2 class="section-title light">강력한 고급 기능</h2>
@@ -1798,7 +1831,7 @@
                                 </ul>
                             </div>
                         </div>
-                        <div class="feature-row">
+                        <div class="feature-row" id="size-adjustment-section">
                             <div class="feature-image">
                                 <img src="https://flopy.kro.kr/hahahaha-20210119-195722-002.gif" alt="이미지 크기 조절 기능">
                             </div>
@@ -1996,13 +2029,26 @@
             // 파티클 초기화
             initParticles();
             
-            // Three.js 웨이브 효과 초기화
+            // Three.js 웨이브 효과 초기화 - 먼저 호출
             initThreeJS();
             
             // 로더 숨기기
             setTimeout(function() {
                 document.querySelector('.loader').classList.add('hidden');
             }, 2000);
+            
+            // "02 크기 조절" 섹션에 스냅 비활성화 적용
+            const sizeAdjustSection = document.getElementById('size-adjustment-section').closest('.snap-section');
+            if (sizeAdjustSection) {
+                sizeAdjustSection.classList.add('snap-disable');
+            }
+            
+            // 고급 기능 섹션 스크롤 문제 해결
+            const advancedSection = document.getElementById('advanced');
+            if (advancedSection) {
+                // 스크롤 시 강제로 snap-align 적용
+                advancedSection.style.scrollSnapAlign = "start";
+            }
             
             // 스냅 스크롤 설정
             setupSnapScroll();
@@ -2305,35 +2351,16 @@
                 });
             });
             
-            // FAQ 토글 기능
+                            // FAQ 토글 기능 - 스크롤 버그 완전 제거
             document.querySelectorAll('.faq-question').forEach(question => {
                 question.addEventListener('click', () => {
                     const item = question.parentElement;
-                    const isActive = item.classList.contains('active');
                     
-                    // 다른 모든 항목 닫기
-                    document.querySelectorAll('.faq-item').forEach(otherItem => {
-                        if (otherItem !== item) {
-                            otherItem.classList.remove('active');
-                        }
-                    });
-                    
-                    // 현재 항목 토글
+                    // 현재 항목 토글만 수행 (스크롤 동작 제거)
                     item.classList.toggle('active');
                     
-                    // 항목이 활성화될 때 부드러운 스크롤
-                    if (!isActive) {
-                        setTimeout(() => {
-                            gsap.to(snapContainer, {
-                                scrollTo: {
-                                    y: item,
-                                    offsetY: 100
-                                },
-                                duration: 0.5,
-                                ease: 'power2.out'
-                            });
-                        }, 300);
-                    }
+                    // 다른 항목은 닫지 않음 - 여러 개 동시에 열 수 있도록 수정
+                    // 이렇게 하면 페이지 스크롤 이동 문제가 발생하지 않음
                 });
             });
             
@@ -2389,38 +2416,56 @@
                 document.querySelector('.cookie-message').classList.remove('show');
             });
             
-            // Three.js 웨이브 애니메이션 초기화
+                        // 3D 웨이브 효과 더 가깝게 조정
             function initThreeJS() {
                 try {
                     const canvas = document.getElementById('wave-canvas');
-                    if (!canvas) return;
+                    if (!canvas) {
+                        console.error('wave-canvas 요소를 찾을 수 없습니다.');
+                        return;
+                    }
                     
-                    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-                    renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+                    // 캔버스 크기 설정 - 화면에 맞게
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                    
+                    // Three.js 초기화
+                    const renderer = new THREE.WebGLRenderer({
+                        canvas: canvas,
+                        alpha: true,
+                        antialias: true
+                    });
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                    renderer.setPixelRatio(window.devicePixelRatio);
                     
                     const scene = new THREE.Scene();
-                    const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
-                    camera.position.z = 5;
                     
-                    // 빛 추가
+                    // 카메라 위치 - 위에서 보는 시점, 더 가깝게 조정
+                    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                    camera.position.y = 8; // 위쪽에 위치 (더 낮게 = 더 가깝게)
+                    camera.position.z = 3; // 더 가깝게 조정
+                    camera.lookAt(0, 0, 0); // 중앙을 바라봄
+                    
+                    // 조명 설정
                     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
                     scene.add(ambientLight);
                     
                     const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-                    directionalLight.position.set(1, 1, 5);
+                    directionalLight.position.set(1, 10, 5);
                     scene.add(directionalLight);
                     
-                    // 물결 메쉬 생성
-                    const geometry = new THREE.PlaneGeometry(15, 15, 50, 50);
+                    // 물결 메쉬 생성 - 더 넓게, 더 세밀하게, 더 가깝게
+                    const geometry = new THREE.PlaneGeometry(35, 35, 100, 100); // 더 넓고 더 세밀하게
                     const material = new THREE.MeshStandardMaterial({
-                        color: 0x007AFF,
+                        color: 0x000000,
                         wireframe: true,
                         transparent: true,
-                        opacity: 0.3
+                        opacity: 0.25 // 약간 더 진하게
                     });
                     
                     const wave = new THREE.Mesh(geometry, material);
                     wave.rotation.x = -Math.PI / 2; // 바닥에 평행하게
+                    wave.position.y = 0.5; // 위치 조정 - 약간 위로
                     scene.add(wave);
                     
                     // 애니메이션 루프
@@ -2434,13 +2479,13 @@
                             const x = positions.getX(i);
                             const y = positions.getY(i);
                             
-                            // 시간에 따라 변화하는 사인파 움직임
-                            const xOffset = Math.sin(x * 0.5 + time * 0.001) * 0.2;
-                            const yOffset = Math.cos(y * 0.5 + time * 0.001) * 0.2;
-                            const amp = 0.5; // 진폭
+                            // 더 부드럽고 강한 물결 효과
+                            const xOffset = Math.sin(x * 0.3 + time * 0.0004) * 0.7;
+                            const yOffset = Math.cos(y * 0.3 + time * 0.0004) * 0.7;
+                            const amp = 1.2; // 진폭 증가
                             
                             // Z 위치 업데이트
-                            positions.setZ(i, xOffset + yOffset + Math.sin(time * 0.001) * amp);
+                            positions.setZ(i, xOffset + yOffset + Math.sin(time * 0.0004) * amp);
                         }
                         
                         positions.needsUpdate = true;
@@ -2452,16 +2497,20 @@
                     
                     // 창 크기 변경 대응
                     window.addEventListener('resize', () => {
-                        camera.aspect = canvas.clientWidth / canvas.clientHeight;
+                        canvas.width = window.innerWidth;
+                        canvas.height = window.innerHeight;
+                        camera.aspect = window.innerWidth / window.innerHeight;
                         camera.updateProjectionMatrix();
-                        renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+                        renderer.setSize(window.innerWidth, window.innerHeight);
                     });
+                    
+                    console.log('Three.js 웨이브 효과가 성공적으로 초기화되었습니다.');
                 } catch (e) {
-                    console.log('Three.js 초기화 오류:', e);
+                    console.error('Three.js 초기화 오류:', e);
                 }
             }
             
-            // 파티클 초기화
+            // 파티클 초기화 - 흑백 테마 적용
             function initParticles() {
                 try {
                     // 파티클 캔버스 설정
@@ -2484,7 +2533,7 @@
                     const particles = [];
                     const particleCount = 100;
                     
-                    // 파티클 생성 (더 iOS 스타일에 맞게 조정)
+                    // 파티클 생성 (흑백 스타일에 맞게 조정)
                     for (let i = 0; i < particleCount; i++) {
                         particles.push({
                             x: Math.random() * canvas.width,
@@ -2492,7 +2541,7 @@
                             radius: Math.random() * 2 + 0.5, // 더 작은 입자들
                             speedX: Math.random() * 0.3 - 0.15, // 더 부드럽게 이동
                             speedY: Math.random() * 0.3 - 0.15,
-                            opacity: Math.random() * 0.4 + 0.1 // 더 은은한 투명도
+                            opacity: Math.random() * 0.3 + 0.1 // 흑백 테마에 맞게 조정된 투명도
                         });
                     }
                     
@@ -2502,15 +2551,15 @@
                         
                         particles.forEach(particle => {
                             ctx.beginPath();
-                            // iOS 스타일 그라데이션
+                            // 흑백 스타일 그라데이션
                             const gradient = ctx.createRadialGradient(
                                 particle.x, particle.y, 0,
                                 particle.x, particle.y, particle.radius
                             );
                             
-                            // iOS 색상 사용
-                            gradient.addColorStop(0, `rgba(0, 122, 255, ${particle.opacity})`);
-                            gradient.addColorStop(0.6, `rgba(90, 200, 250, ${particle.opacity * 0.6})`);
+                            // 흑백 색상 사용
+                            gradient.addColorStop(0, `rgba(0, 0, 0, ${particle.opacity})`);
+                            gradient.addColorStop(0.6, `rgba(50, 50, 50, ${particle.opacity * 0.6})`);
                             gradient.addColorStop(1, `rgba(255, 255, 255, 0)`);
                             
                             ctx.fillStyle = gradient;
@@ -2571,7 +2620,7 @@
                 }
             }
             
-            // 마우스 이펙트 추가 - iOS 스타일 향상
+            // 마우스 이펙트 추가 - 흑백 스타일 향상
             document.addEventListener('mousemove', function(e) {
                 // 히어로 이미지 시차 효과
                 const heroImage = document.querySelector('.hero-image');
@@ -2607,7 +2656,7 @@
                     });
                 });
                 
-                // iOS 스타일 버튼 호버 효과
+                // 흑백 스타일 버튼 호버 효과
                 const buttons = document.querySelectorAll('.hero-cta, .download-button, .cta-button');
                 buttons.forEach(button => {
                     const rect = button.getBoundingClientRect();
@@ -2619,7 +2668,8 @@
                         // 마우스 위치에 따라 그라데이션 위치 조정
                         const xPercent = Math.floor((x / rect.width) * 100);
                         const yPercent = Math.floor((y / rect.height) * 100);
-                        button.style.background = `radial-gradient(circle at ${xPercent}% ${yPercent}%, var(--accent), var(--primary))`;
+                        // 흑백 그라데이션으로 조정
+                        button.style.background = `radial-gradient(circle at ${xPercent}% ${yPercent}%, #444, #000)`;
                     } else {
                         // 마우스가 버튼을 벗어나면 원래 스타일로 복원
                         button.style.background = '';
@@ -2681,7 +2731,7 @@
                 }
             }
             
-            // 스냅 스크롤 설정 함수
+            // 스냅 스크롤 설정 함수 - 버그 수정
             function setupSnapScroll() {
                 const container = document.querySelector('.snap-container');
                 const sections = document.querySelectorAll('.snap-section');
@@ -2693,13 +2743,19 @@
                     }
                 });
                 
-                // 휠 이벤트 최적화 (iOS 스타일 스냅 스크롤)
+                // 휠 이벤트 최적화 (스냅 스크롤 개선)
                 let isScrolling = false;
                 let lastScrollTime = 0;
-                const scrollCooldown = 1000; // ms
+                const scrollCooldown = 800; // 스크롤 쿨다운 시간 감소
                 
                 container.addEventListener('wheel', function(e) {
                     const now = Date.now();
+                    
+                    // 현재 섹션이 스냅 비활성화 상태인지 확인
+                    const currentSection = getCurrentSection();
+                    if (currentSection && currentSection.classList.contains('snap-disable')) {
+                        return; // 스냅 비활성화 섹션에서는 기본 스크롤 동작 유지
+                    }
                     
                     // 스크롤 쿨다운 확인
                     if (isScrolling || now - lastScrollTime < scrollCooldown) {
@@ -2731,90 +2787,30 @@
                     }, scrollCooldown);
                 }, { passive: false });
                 
-                // 키보드 방향키 지원
-                document.addEventListener('keydown', function(e) {
-                    const now = Date.now();
-                    if (isScrolling || now - lastScrollTime < scrollCooldown) {
-                        return;
-                    }
-                    
-                    const currentSectionIndex = getCurrentSectionIndex();
-                    
-                    if (e.key === 'ArrowDown' && currentSectionIndex < sections.length - 1) {
-                        scrollToSection(currentSectionIndex + 1);
-                        e.preventDefault();
-                    } else if (e.key === 'ArrowUp' && currentSectionIndex > 0) {
-                        scrollToSection(currentSectionIndex - 1);
-                        e.preventDefault();
-                    }
-                    
-                    isScrolling = true;
-                    lastScrollTime = now;
-                    
-                    setTimeout(() => {
-                        isScrolling = false;
-                    }, scrollCooldown);
-                });
-                
-                // 터치 이벤트 지원 (모바일 스와이프)
-                let touchStartY = 0;
-                let touchEndY = 0;
-                
-                container.addEventListener('touchstart', function(e) {
-                    touchStartY = e.changedTouches[0].screenY;
-                }, { passive: true });
-                
-                container.addEventListener('touchend', function(e) {
-                    const now = Date.now();
-                    if (isScrolling || now - lastScrollTime < scrollCooldown) {
-                        return;
-                    }
-                    
-                    touchEndY = e.changedTouches[0].screenY;
-                    const currentSectionIndex = getCurrentSectionIndex();
-                    
-                    // 스와이프 거리가 충분한지 확인
-                    const touchDiff = touchStartY - touchEndY;
-                    const minSwipeDistance = 50;
-                    
-                    if (touchDiff > minSwipeDistance && currentSectionIndex < sections.length - 1) {
-                        // 위로 스와이프 (다음 섹션)
-                        scrollToSection(currentSectionIndex + 1);
-                    } else if (touchDiff < -minSwipeDistance && currentSectionIndex > 0) {
-                        // 아래로 스와이프 (이전 섹션)
-                        scrollToSection(currentSectionIndex - 1);
-                    }
-                    
-                    isScrolling = true;
-                    lastScrollTime = now;
-                    
-                    setTimeout(() => {
-                        isScrolling = false;
-                    }, scrollCooldown);
-                }, { passive: true });
-                
-                // 현재 표시된 섹션 인덱스 가져오기
-                function getCurrentSectionIndex() {
-                    const scrollPosition = container.scrollTop;
-                    const windowHeight = window.innerHeight;
-                    
-                    // 현재 가장 많이 보이는 섹션 찾기
-                    let maxVisibleSection = 0;
+                // 현재 표시된 섹션 가져오기
+                function getCurrentSection() {
+                    const viewportCenter = window.innerHeight / 2;
+                    let currentSection = null;
                     let maxVisibleArea = 0;
                     
-                    sections.forEach((section, index) => {
+                    sections.forEach(section => {
                         const rect = section.getBoundingClientRect();
-                        const visibleTop = Math.max(0, rect.top);
-                        const visibleBottom = Math.min(windowHeight, rect.bottom);
-                        const visibleArea = Math.max(0, visibleBottom - visibleTop);
+                        const visibleHeight = Math.min(rect.bottom, window.innerHeight) - 
+                                             Math.max(rect.top, 0);
                         
-                        if (visibleArea > maxVisibleArea) {
-                            maxVisibleArea = visibleArea;
-                            maxVisibleSection = index;
+                        if (visibleHeight > maxVisibleArea) {
+                            maxVisibleArea = visibleHeight;
+                            currentSection = section;
                         }
                     });
                     
-                    return maxVisibleSection;
+                    return currentSection;
+                }
+                
+                // 현재 표시된 섹션 인덱스 가져오기
+                function getCurrentSectionIndex() {
+                    const section = getCurrentSection();
+                    return Array.from(sections).indexOf(section);
                 }
                 
                 // 특정 섹션으로 스크롤
@@ -2860,9 +2856,9 @@
                     const x = e.clientX - rect.left;
                     const y = e.clientY - rect.top;
                     
-                    // 중심점으로부터의 위치를 -10~10 범위로 변환 (iOS 스타일 더 부드러운 효과)
-                    const rotateY = ((x / rect.width) - 0.5) * 8;
-                    const rotateX = -((y / rect.height) - 0.5) * 8;
+                    // 중심점으로부터의 위치를 -10~10 범위로 변환 (더 부드러운 효과)
+                    const rotateY = ((x / rect.width) - 0.5) * 6; // 회전각 감소
+                    const rotateX = -((y / rect.height) - 0.5) * 6;
                     
                     gsap.to(card, {
                         rotateX: rotateX,
@@ -2886,29 +2882,10 @@
                 });
             });
             
-            // 반짝이는 버튼 효과 - iOS 스타일
+            // 버튼 효과 호버 효과 제거, 클릭 효과만 유지
             const allButtons = document.querySelectorAll('.hero-cta, .download-button, .cta-button');
             allButtons.forEach(button => {
-                // 마우스 오버 시 추가 효과
-                button.addEventListener('mouseenter', function() {
-                    gsap.to(button, {
-                        boxShadow: '0 15px 40px rgba(0, 122, 255, 0.4)',
-                        scale: 1.05,
-                        duration: 0.3,
-                        ease: 'power2.out'
-                    });
-                });
-                
-                button.addEventListener('mouseleave', function() {
-                    gsap.to(button, {
-                        boxShadow: '0 10px 30px rgba(0, 122, 255, 0.3)',
-                        scale: 1,
-                        duration: 0.5,
-                        ease: 'power2.out'
-                    });
-                });
-                
-                // 클릭 효과 추가 (iOS 스타일 햅틱 피드백)
+                // 클릭 효과만 추가 (햅틱 피드백)
                 button.addEventListener('mousedown', function() {
                     gsap.to(button, {
                         scale: 0.98,
@@ -2919,40 +2896,79 @@
                 
                 button.addEventListener('mouseup', function() {
                     gsap.to(button, {
-                        scale: 1.05,
+                        scale: 1,
                         duration: 0.2,
                         ease: 'back.out(1.5)'
                     });
                 });
             });
             
-            // 다이나믹 텍스트 효과 (타이핑) - iOS 스타일
-            function createTypingEffect(element, text, delay = 0) {
+            // 반복 타이핑 효과 - FLOPY 대문자로 유지 + 커서 깜빡임 효과 추가
+            function createLoopingTypeEffect(element, text) {
+                const originalText = text; // 원래 텍스트 저장
+                let isTyping = true; // true: 타이핑 중, false: 삭제 중
                 let currentIndex = 0;
-                element.textContent = '';
+                let waitTimer = null;
                 
-                setTimeout(() => {
-                    const interval = setInterval(() => {
+                // 공간 유지를 위한 투명 텍스트 생성
+                function createPlaceholder(length) {
+                    return '<span style="visibility:hidden;">' + originalText + '</span>';
+                }
+                
+                function typeEffect() {
+                    clearTimeout(waitTimer); // 이전 타이머 제거
+                    
+                    if (isTyping) {
+                        // 타이핑 모드
                         if (currentIndex < text.length) {
-                            element.textContent += text[currentIndex];
+                            // 현재까지 타이핑된 텍스트 + 남은 부분을 투명하게 + 커서
+                            element.innerHTML = text.substring(0, currentIndex + 1) +
+                                                '<span style="visibility:hidden;">' + 
+                                                text.substring(currentIndex + 1) + 
+                                                '</span>' +
+                                                '<span class="typing-cursor"></span>';
                             currentIndex++;
+                            setTimeout(typeEffect, 100); // 0.1초마다 타이핑
                         } else {
-                            clearInterval(interval);
+                            // 타이핑 완료, 2초 대기 후 삭제 시작 (커서 유지)
+                            element.innerHTML = text + '<span class="typing-cursor"></span>';
+                            isTyping = false;
+                            waitTimer = setTimeout(typeEffect, 2000);
                         }
-                    }, 40);
-                }, delay);
+                    } else {
+                        // 삭제 모드
+                        if (currentIndex > 0) {
+                            // 현재까지 남은 텍스트 + 지운 부분을 투명하게 + 커서
+                            element.innerHTML = text.substring(0, currentIndex - 1) +
+                                                '<span style="visibility:hidden;">' + 
+                                                text.substring(currentIndex - 1) + 
+                                                '</span>' +
+                                                '<span class="typing-cursor"></span>';
+                            currentIndex--;
+                            setTimeout(typeEffect, 100); // 0.1초마다 삭제
+                        } else {
+                            // 삭제 완료, 투명 텍스트로 공간 유지 후 다시 시작 (커서 유지)
+                            element.innerHTML = '<span style="visibility:hidden;">' + originalText + '</span>' +
+                                               '<span class="typing-cursor"></span>';
+                            isTyping = true;
+                            setTimeout(typeEffect, 500); // 0.5초 대기 후 다시 시작
+                        }
+                    }
+                }
+                
+                // 초기 상태 설정 - 투명 텍스트로 공간 유지 + 커서
+                element.innerHTML = '<span style="visibility:hidden;">' + originalText + '</span>' +
+                                   '<span class="typing-cursor"></span>';
+                setTimeout(typeEffect, 500); // 0.5초 후 시작
             }
             
-            // 페이지 로드 시 타이틀에 타이핑 효과 적용
+            // 페이지 로드 시 타이틀에 반복 타이핑 효과 적용
             const heroTitle = document.querySelector('.hero-title');
             if (heroTitle) {
-                const originalText = heroTitle.textContent;
-                heroTitle.textContent = '';
-                
-                // 로더가 사라진 후 타이핑 효과 시작
+                const originalText = "FLOPY"; // 대문자로 변경
                 setTimeout(() => {
-                    createTypingEffect(heroTitle, originalText);
-                }, 2200);
+                    createLoopingTypeEffect(heroTitle, originalText);
+                }, 2200); // 로더가 사라진 후 시작
             }
             
             // 플로팅 요소들 랜덤 애니메이션
@@ -2975,7 +2991,7 @@
                 });
             });
             
-            // 고급 배경 효과: 동적 그라데이션 (iOS 스타일)
+            // 고급 배경 효과: 동적 그라데이션 (흑백 스타일)
             function createDynamicGradient() {
                 const gradientContainer = document.createElement('div');
                 gradientContainer.style.cssText = `
@@ -2985,8 +3001,8 @@
                     width: 100%;
                     height: 100%;
                     z-index: -2;
-                    background: linear-gradient(135deg, rgba(0, 122, 255, 0.05), rgba(255, 45, 85, 0.05));
-                    opacity: 0.5;
+                    background: linear-gradient(135deg, rgba(0, 0, 0, 0.02), rgba(50, 50, 50, 0.02));
+                    opacity: 0.3;
                     transition: background 1s linear;
                     pointer-events: none;
                 `;
@@ -2994,19 +3010,25 @@
                 document.body.appendChild(gradientContainer);
                 
                 // 그라데이션 애니메이션
-                let hue1 = 210; // Blue
-                let hue2 = 340; // Pink
+                let gray1 = 0; // Black
+                let gray2 = 50; // Dark gray
+                let direction = 1;
                 
                 function animateGradient() {
-                    // 색상 변화
-                    hue1 = (hue1 + 0.1) % 360;
-                    hue2 = (hue2 + 0.1) % 360;
+                    // 명암 변화
+                    gray1 += direction * 0.1;
+                    gray2 += direction * 0.1;
+                    
+                    // 방향 전환
+                    if (gray1 > 50 || gray1 < 0) {
+                        direction *= -1;
+                    }
                     
                     // 그라데이션 업데이트
                     gradientContainer.style.background = `
                         linear-gradient(135deg, 
-                        hsla(${hue1}, 100%, 50%, 0.05), 
-                        hsla(${hue2}, 100%, 50%, 0.05))
+                        rgba(${gray1}, ${gray1}, ${gray1}, 0.02), 
+                        rgba(${gray2}, ${gray2}, ${gray2}, 0.02))
                     `;
                     
                     requestAnimationFrame(animateGradient);
@@ -3015,102 +3037,13 @@
                 animateGradient();
             }
             
-            // 배경 효과 활성화 (iOS 스타일 가벼운 효과)
+            // 배경 효과 활성화
             createDynamicGradient();
             
-            // 마우스 포인터 효과 (선택적 활성화)
-            function createMouseEffect() {
-                const pointer = document.createElement('div');
-                pointer.style.cssText = `
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 8px;
-                    height: 8px;
-                    border-radius: 50%;
-                    background-color: var(--primary);
-                    mix-blend-mode: exclusion;
-                    pointer-events: none;
-                    opacity: 0;
-                    z-index: 9999;
-                    transform: translate(-50%, -50%);
-                    transition: transform 0.1s linear, width 0.2s ease, height 0.2s ease;
-                `;
-                
-                document.body.appendChild(pointer);
-                
-                // 포인터 보이기
-                gsap.to(pointer, {
-                    opacity: 0.7,
-                    duration: 0.3,
-                    delay: 1
-                });
-                
-                // 부드러운 마우스 따라다니기
-                let mouseX = 0;
-                let mouseY = 0;
-                
-                document.addEventListener('mousemove', (e) => {
-                    mouseX = e.clientX;
-                    mouseY = e.clientY;
-                });
-                
-                // RAF 사용하여 부드럽게 따라다니기
-                function updatePointer() {
-                    gsap.set(pointer, {
-                        x: mouseX,
-                        y: mouseY
-                    });
-                    
-                    requestAnimationFrame(updatePointer);
-                }
-                
-                updatePointer();
-                
-                // 클릭 효과
-                document.addEventListener('mousedown', () => {
-                    gsap.to(pointer, {
-                        width: 24,
-                        height: 24,
-                        opacity: 0.5,
-                        duration: 0.2
-                    });
-                });
-                
-                document.addEventListener('mouseup', () => {
-                    gsap.to(pointer, {
-                        width: 8,
-                        height: 8,
-                        opacity: 0.7,
-                        duration: 0.3
-                    });
-                });
-                
-                // 특정 요소 위에 있을 때 크기 변경
-                const interactiveElements = document.querySelectorAll('a, button, .feature-card, .faq-question');
-                interactiveElements.forEach(el => {
-                    el.addEventListener('mouseenter', () => {
-                        gsap.to(pointer, {
-                            width: 16,
-                            height: 16,
-                            duration: 0.2
-                        });
-                    });
-                    
-                    el.addEventListener('mouseleave', () => {
-                        gsap.to(pointer, {
-                            width: 8,
-                            height: 8,
-                            duration: 0.2
-                        });
-                    });
-                });
-            }
-            
-            // 데스크톱에서만 마우스 효과 활성화 (선택적)
-            if (window.innerWidth > 768) {
-                // createMouseEffect(); // 원하는 경우 주석 해제
-            }
+            // 페이지 로드가 완료되면 최초 인디케이터 업데이트
+            window.addEventListener('load', function() {
+                updatePageIndicator();
+            });
         });
     </script>
 </body>
