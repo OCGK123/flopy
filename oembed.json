@@ -1,0 +1,15 @@
+{
+  "version": "1.0",
+  "type": "rich",
+  "provider_name": "FLOPY",
+  "provider_url": "https://flopy.kro.kr",
+  "title": "투명 이미지 플로터로 트레이싱을 편하게 해보세요",
+  "author_name": "FLOPY",
+  "author_url": "https://flopy.kro.kr",
+  "html": "<iframe src='https://flopy.kro.kr/embed-view' width='600' height='400' frameborder='0' allowfullscreen></iframe>",
+  "width": 600,
+  "height": 400,
+  "thumbnail_url": "https://flopy.kro.kr/image.png",
+  "thumbnail_width": 600,
+  "thumbnail_height": 400
+}
