@@ -135,26 +135,27 @@
             background: rgba(0, 0, 0, 0.2);
         }
         
-        /* 스냅 스크롤 기능 완전 제거 */
-        .snap-container {
+        /* 스크롤 컨테이너 - 스냅 스크롤 완전 제거 */
+        .main-container {
             height: 100vh;
             overflow-y: auto;
             scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch; /* iOS 관성 스크롤 유지 */
         }
         
-        .snap-section {
-            height: 100vh;
+        /* 섹션 스타일 - 스냅 제거 */
+        .content-section {
+            min-height: 100vh;
             position: relative;
             display: flex;
             align-items: center;
             overflow: hidden;
         }
         
-        /* 기존 스냅 관련 클래스 제거 */
-        .snap-disable {
-            height: auto;
-            min-height: 100vh;
+        /* 마지막 CTA 섹션만 스냅 활성화 */
+        #cta {
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
         }
         
         /* 로더 - 흑백 스타일 */
@@ -188,11 +189,20 @@
             width: 80px;
             height: 80px;
             border-radius: var(--radius-lg);
-            background: linear-gradient(135deg, #000, #444);
+            background-color: #000;
             box-shadow: var(--shadow-lg);
             position: relative;
             overflow: hidden;
             animation: float 3s infinite ease-in-out;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .loader-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
         
         @keyframes float {
@@ -207,13 +217,13 @@
         .loader-logo::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.3);
-            transform: skewX(-30deg);
-            animation: shine 1.5s infinite;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(45deg);
+            animation: shine 2s infinite;
         }
         
         .loader-text {
@@ -251,9 +261,20 @@
         }
         
         @keyframes shine {
-            0% { left: -100%; }
-            20% { left: 100%; }
-            100% { left: 100%; }
+            0% { 
+                transform: rotate(45deg) translateY(0%);
+                opacity: 0;
+            }
+            25% {
+                opacity: 0.3;
+            }
+            50% { 
+                transform: rotate(45deg) translateY(100%);
+                opacity: 0;
+            }
+            100% {
+                opacity: 0;
+            }
         }
         
         @keyframes fadeIn {
@@ -330,28 +351,37 @@
             width: 32px;
             height: 32px;
             border-radius: var(--radius-sm);
-            background: linear-gradient(135deg, #000, #444);
+            background-color: #000;
             margin-right: 10px;
             position: relative;
             overflow: hidden;
             box-shadow: var(--shadow-sm);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .logo-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
         
         .logo-icon::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.3);
-            transform: skewX(-30deg);
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(45deg);
             transition: 0.5s var(--ease-ios);
             filter: blur(5px);
         }
         
         .logo:hover .logo-icon::before {
-            left: 100%;
+            transform: rotate(45deg) translateY(100%);
         }
         
         .logo-text {
@@ -421,7 +451,7 @@
             transform-origin: left;
         }
         
-        /* 페이지 인디케이터 - 호버 시 섹션 이름 표시 */
+        /* 페이지 인디케이터 - 호버 시 섹션 이름 표시 및 버블 효과 */
         .page-indicator {
             position: fixed;
             right: 20px;
@@ -437,6 +467,7 @@
             position: relative;
             display: flex;
             align-items: center;
+            transition: transform 0.3s var(--ease-spring);
         }
         
         .page-indicator-dot {
@@ -444,7 +475,7 @@
             height: 8px;
             border-radius: 50%;
             background-color: rgba(0, 0, 0, 0.2);
-            transition: all 0.3s var(--ease-ios);
+            transition: all 0.3s var(--ease-spring);
             cursor: pointer;
         }
         
@@ -454,7 +485,16 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
         }
         
-        .page-indicator-dot:hover {
+        /* 점 호버 시 인접한 점들 밀어내기 효과 */
+        .page-indicator-item:hover {
+            transform: scale(1.2);
+        }
+        
+        .page-indicator-item:hover ~ .page-indicator-item {
+            transform: translateY(5px);
+        }
+        
+        .page-indicator-item:hover .page-indicator-dot {
             transform: scale(1.3);
             background-color: rgba(0, 0, 0, 0.5);
         }
@@ -589,28 +629,18 @@
             transform: translateY(30px);
             min-height: 1.05em; /* 텍스트 높이 유지 */
             position: relative; /* 포지션 설정 */
+            display: inline-block;
         }
         
-        /* 텍스트가 사라져도 공간 유지를 위한 가상 요소 */
-        .hero-title::after {
-            content: "FLOPY";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            color: transparent;
-            z-index: -1;
-        }
-        
-        /* 깜빡이는 커서 스타일 */
+        /* 타이핑 커서 스타일 */
         .typing-cursor {
             display: inline-block;
             width: 3px;
             height: 1em;
             background-color: #000;
-            vertical-align: middle;
             margin-left: 2px;
             animation: blink 1s step-end infinite;
+            vertical-align: text-bottom;
         }
         
         @keyframes blink {
@@ -768,6 +798,7 @@
             background-color: var(--background-alt);
             position: relative;
             overflow: hidden;
+            padding: 120px 0; /* 섹션 간격 증가 */
         }
         
         .features-grid {
@@ -880,12 +911,14 @@
             color: var(--background);
             position: relative;
             overflow: hidden;
+            padding: 150px 0; /* 섹션 간격 증가 및 타이틀 위치 조정 */
         }
         
         .advanced-features-container {
             display: flex;
             flex-direction: column;
             gap: 8rem;
+            margin-top: 3rem; /* 타이틀과 콘텐츠 사이 간격 추가 */
         }
         
         .feature-row {
@@ -1005,6 +1038,7 @@
             background-color: var(--background-tertiary);
             position: relative;
             overflow: hidden;
+            padding: 150px 0; /* 섹션 간격 증가 및 타이틀 위치 조정 */
         }
         
         .preview-container {
@@ -1014,7 +1048,7 @@
         .vertical-carousel {
             position: relative;
             height: 600px;
-            margin-top: 4rem;
+            margin-top: 5rem; /* 타이틀과 콘텐츠 사이 간격 추가 */
             opacity: 0;
             transform: translateY(50px);
         }
@@ -1080,6 +1114,7 @@
             background-color: var(--background);
             position: relative;
             overflow: hidden;
+            padding: 120px 0;
         }
         
         .download-container {
@@ -1207,6 +1242,7 @@
             background-color: var(--background-alt);
             position: relative;
             overflow: hidden;
+            padding: 120px 0;
         }
         
         .faq-container {
@@ -1548,13 +1584,22 @@
             }
         }
         
-        /* 모바일 스타일 최적화 */
-        @media (max-width: 768px) {
-            .snap-section {
-                height: auto;
-                min-height: 100vh;
+        /* 모바일 스타일 최적화 - 해상도 문제 해결 */
+        @media (max-width: 1024px) {
+            .hero-title {
+                font-size: clamp(2.5rem, 8vw, 5rem);
             }
             
+            .section-title {
+                font-size: clamp(2rem, 4vw, 4rem);
+            }
+            
+            .feature-heading {
+                font-size: 2rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
             .container {
                 padding: 0 var(--dynamic-padding-sm);
             }
@@ -1596,6 +1641,45 @@
                 right: 20px;
                 width: 40px;
                 height: 40px;
+            }
+            
+            .content-section {
+                min-height: auto;
+                padding: 100px 0;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .hero-title {
+                font-size: clamp(2rem, 6vw, 3.5rem);
+            }
+            
+            .hero-description {
+                font-size: 1rem;
+            }
+            
+            .feature-card {
+                padding: 2rem 1.5rem;
+            }
+            
+            .download-card-inner {
+                padding: 3rem 1.5rem;
+            }
+            
+            .cta-title {
+                font-size: 2.2rem;
+            }
+            
+            .cta-text {
+                font-size: 1.1rem;
+            }
+            
+            nav ul {
+                gap: 1.5rem;
+            }
+            
+            nav ul li a {
+                font-size: 0.8rem;
             }
         }
 
@@ -1666,7 +1750,9 @@
     <!-- 로더 -->
     <div class="loader">
         <div class="loader-content">
-            <div class="loader-logo"></div>
+            <div class="loader-logo">
+                <img src="https://flopy.kro.kr/image.png" alt="FLOPY Logo">
+            </div>
             <div class="loader-text">FLOPY</div>
             <div class="loader-progress">
                 <div class="loader-progress-bar"></div>
@@ -1681,7 +1767,9 @@
     <header>
         <div class="header-container">
             <a href="#" class="logo">
-                <div class="logo-icon"></div>
+                <div class="logo-icon">
+                    <img src="https://flopy.kro.kr/image.png" alt="FLOPY Logo">
+                </div>
                 <div class="logo-text">FLOPY</div>
             </a>
             <nav>
@@ -1728,10 +1816,10 @@
         </div>
     </div>
     
-    <!-- 스냅 스크롤 컨테이너 -->
-    <div class="snap-container">
+    <!-- 메인 컨테이너 - 스냅 스크롤 제거 -->
+    <div class="main-container">
         <!-- 히어로 섹션 -->
-        <section id="hero" class="hero snap-section">
+        <section id="hero" class="hero content-section">
             <div class="hero-bg">
                 <div class="blob blob-1"></div>
                 <div class="blob blob-2"></div>
@@ -1747,7 +1835,7 @@
                     </a>
                     <div class="hero-image-container">
                         <div class="hero-image-glow"></div>
-                        <img src="https://flopy.kro.kr/hahahaha-20210119-195722-002.gif" alt="flopy 미리보기" class="hero-image">
+                        <img src="https://flopy.kro.kr/image.png" alt="flopy 미리보기" class="hero-image">
                     </div>
                 </div>
             </div>
@@ -1767,7 +1855,7 @@
         </section>
         
         <!-- 기능 섹션 -->
-        <section id="features" class="features snap-section">
+        <section id="features" class="features content-section">
             <div class="blob blob-1" style="opacity: 0.1;"></div>
             <div class="container">
                 <div class="section-content">
@@ -1800,8 +1888,8 @@
             </div>
         </section>
         
-    <!-- 고급 기능 섹션 - 스냅 문제 해결 위해 id 변경 -->
-        <section id="advanced" class="advanced-features snap-section">
+        <!-- 고급 기능 섹션 -->
+        <section id="advanced" class="advanced-features content-section">
             <div class="container">
                 <div class="section-content">
                     <h2 class="section-title light">강력한 고급 기능</h2>
@@ -1809,7 +1897,7 @@
                     <div class="advanced-features-container">
                         <div class="feature-row">
                             <div class="feature-image">
-                                <img src="https://flopy.kro.kr/hahahaha-20210119-195722-002.gif" alt="투명도 설정 기능">
+                                <img src="https://flopy.kro.kr/image.png" alt="투명도 설정 기능">
                             </div>
                             <div class="feature-details">
                                 <div class="feature-number">01</div>
@@ -1833,7 +1921,7 @@
                         </div>
                         <div class="feature-row" id="size-adjustment-section">
                             <div class="feature-image">
-                                <img src="https://flopy.kro.kr/hahahaha-20210119-195722-002.gif" alt="이미지 크기 조절 기능">
+                                <img src="https://flopy.kro.kr/image.png" alt="이미지 크기 조절 기능">
                             </div>
                             <div class="feature-details">
                                 <div class="feature-number">02</div>
@@ -1857,7 +1945,7 @@
                         </div>
                         <div class="feature-row">
                             <div class="feature-image">
-                                <img src="https://flopy.kro.kr/hahahaha-20210119-195722-002.gif" alt="항상 위에 표시 기능">
+                                <img src="https://flopy.kro.kr/image.png" alt="항상 위에 표시 기능">
                             </div>
                             <div class="feature-details">
                                 <div class="feature-number">03</div>
@@ -1885,7 +1973,7 @@
         </section>
         
         <!-- 미리보기 섹션 -->
-        <section id="preview" class="preview snap-section">
+        <section id="preview" class="preview content-section">
             <div class="blob blob-1" style="opacity: 0.1;"></div>
             <div class="container preview-container">
                 <div class="section-content">
@@ -1894,16 +1982,16 @@
                     <div class="vertical-carousel">
                         <div class="carousel-slides">
                             <div class="carousel-slide active">
-                                <img src="https://flopy.kro.kr/hahahaha-20210119-195722-002.gif" alt="메인 화면">
+                                <img src="https://flopy.kro.kr/image.png" alt="메인 화면">
                             </div>
                             <div class="carousel-slide">
-                                <img src="https://flopy.kro.kr/hahahaha-20210119-195722-002.gif" alt="투명도 조절 기능">
+                                <img src="https://flopy.kro.kr/image.png" alt="투명도 조절 기능">
                             </div>
                             <div class="carousel-slide">
-                                <img src="https://flopy.kro.kr/hahahaha-20210119-195722-002.gif" alt="배경 제거 기능">
+                                <img src="https://flopy.kro.kr/image.png" alt="배경 제거 기능">
                             </div>
                             <div class="carousel-slide">
-                                <img src="https://flopy.kro.kr/hahahaha-20210119-195722-002.gif" alt="설정 화면">
+                                <img src="https://flopy.kro.kr/image.png" alt="설정 화면">
                             </div>
                         </div>
                         <div class="carousel-nav">
@@ -1918,7 +2006,7 @@
         </section>
         
         <!-- 다운로드 섹션 -->
-        <section id="download" class="download snap-section">
+        <section id="download" class="download content-section">
             <div class="blob blob-2" style="opacity: 0.1;"></div>
             <div class="container download-container">
                 <div class="section-content">
@@ -1940,7 +2028,7 @@
         </section>
         
         <!-- FAQ 섹션 -->
-        <section id="faq" class="faq snap-section">
+        <section id="faq" class="faq content-section">
             <div class="container faq-container">
                 <div class="section-content">
                     <h2 class="section-title">자주 묻는 질문</h2>
@@ -1996,8 +2084,8 @@
             </div>
         </section>
         
-        <!-- CTA 섹션 -->
-        <section id="cta" class="cta snap-section">
+        <!-- CTA 섹션 - 스냅 유지 -->
+        <section id="cta" class="cta content-section">
             <div class="cta-bg"></div>
             <div class="container cta-container">
                 <h2 class="cta-title">지금 바로 경험해보세요</h2>
@@ -2037,30 +2125,14 @@
                 document.querySelector('.loader').classList.add('hidden');
             }, 2000);
             
-            // "02 크기 조절" 섹션에 스냅 비활성화 적용
-            const sizeAdjustSection = document.getElementById('size-adjustment-section').closest('.snap-section');
-            if (sizeAdjustSection) {
-                sizeAdjustSection.classList.add('snap-disable');
-            }
-            
-            // 고급 기능 섹션 스크롤 문제 해결
-            const advancedSection = document.getElementById('advanced');
-            if (advancedSection) {
-                // 스크롤 시 강제로 snap-align 적용
-                advancedSection.style.scrollSnapAlign = "start";
-            }
-            
-            // 스냅 스크롤 설정
-            setupSnapScroll();
-            
             // 스크롤 이벤트
             let lastScrollTop = 0;
-            const snapContainer = document.querySelector('.snap-container');
+            const mainContainer = document.querySelector('.main-container');
             
-            snapContainer.addEventListener('scroll', function() {
+            mainContainer.addEventListener('scroll', function() {
                 // 스크롤 진행 표시기 업데이트
-                const scrollTop = snapContainer.scrollTop;
-                const height = snapContainer.scrollHeight - snapContainer.clientHeight;
+                const scrollTop = mainContainer.scrollTop;
+                const height = mainContainer.scrollHeight - mainContainer.clientHeight;
                 const scrolled = (scrollTop / height) * 100;
                 document.querySelector('.scroll-progress').style.width = scrolled + '%';
                 
@@ -2083,12 +2155,30 @@
                 // 페이지 인디케이터 업데이트
                 updatePageIndicator();
                 
+                // 글래스 효과 카드들의 3D 효과
+                const glassCards = document.querySelectorAll('.feature-card, .faq-item');
+                glassCards.forEach(card => {
+                    if (isElementInViewport(card, mainContainer)) {
+                        const rect = card.getBoundingClientRect();
+                        const centerY = window.innerHeight / 2;
+                        const cardCenterY = rect.top + rect.height / 2;
+                        const distance = (cardCenterY - centerY) / window.innerHeight;
+                        
+                        // 거리에 비례하여 회전 각도 조절
+                        gsap.to(card, {
+                            rotateX: distance * 5,
+                            duration: 0.5,
+                            ease: "power1.out"
+                        });
+                    }
+                });
+                
                 lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
             });
             
             // 스크롤 위로 버튼 클릭 이벤트
             document.querySelector('.scroll-top').addEventListener('click', function() {
-                gsap.to(snapContainer, {
+                gsap.to(mainContainer, {
                     scrollTo: 0,
                     duration: 1,
                     ease: "power2.inOut"
@@ -2101,7 +2191,7 @@
                     e.preventDefault();
                     const target = document.querySelector(this.getAttribute('href'));
                     if (target) {
-                        gsap.to(snapContainer, {
+                        gsap.to(mainContainer, {
                             scrollTo: target,
                             duration: 1,
                             ease: "power2.inOut"
@@ -2113,10 +2203,10 @@
             // 스크롤 다운 인디케이터 클릭 이벤트
             document.querySelectorAll('.scroll-down-indicator').forEach(indicator => {
                 indicator.addEventListener('click', function() {
-                    const currentSection = this.closest('.snap-section');
+                    const currentSection = this.closest('.content-section');
                     const nextSection = currentSection.nextElementSibling;
                     if (nextSection) {
-                        gsap.to(snapContainer, {
+                        gsap.to(mainContainer, {
                             scrollTo: nextSection,
                             duration: 1,
                             ease: "power2.inOut"
@@ -2131,7 +2221,7 @@
                     const sectionId = this.getAttribute('data-section');
                     const targetSection = document.getElementById(sectionId);
                     if (targetSection) {
-                        gsap.to(snapContainer, {
+                        gsap.to(mainContainer, {
                             scrollTo: targetSection,
                             duration: 1,
                             ease: "power2.inOut"
@@ -2191,7 +2281,7 @@
                     scrollTrigger: {
                         trigger: element,
                         start: 'top 80%',
-                        scroller: '.snap-container',
+                        scroller: '.main-container',
                         once: true
                     }
                 });
@@ -2208,7 +2298,7 @@
                     scrollTrigger: {
                         trigger: element,
                         start: 'top 80%',
-                        scroller: '.snap-container',
+                        scroller: '.main-container',
                         once: true
                     }
                 });
@@ -2225,7 +2315,7 @@
                     scrollTrigger: {
                         trigger: element,
                         start: 'top 80%',
-                        scroller: '.snap-container',
+                        scroller: '.main-container',
                         once: true
                     }
                 });
@@ -2241,7 +2331,7 @@
                     scrollTrigger: {
                         trigger: element,
                         start: 'top 70%',
-                        scroller: '.snap-container',
+                        scroller: '.main-container',
                         once: true
                     }
                 });
@@ -2257,7 +2347,7 @@
                     scrollTrigger: {
                         trigger: element,
                         start: 'top 70%',
-                        scroller: '.snap-container',
+                        scroller: '.main-container',
                         once: true
                     }
                 });
@@ -2274,7 +2364,7 @@
                     scrollTrigger: {
                         trigger: element.parentElement,
                         start: 'top 70%',
-                        scroller: '.snap-container',
+                        scroller: '.main-container',
                         once: true
                     }
                 });
@@ -2289,7 +2379,7 @@
                 scrollTrigger: {
                     trigger: '.vertical-carousel',
                     start: 'top 70%',
-                    scroller: '.snap-container',
+                    scroller: '.main-container',
                     once: true
                 }
             });
@@ -2329,7 +2419,7 @@
                 scrollTrigger: {
                     trigger: '.download-card',
                     start: 'top 80%',
-                    scroller: '.snap-container',
+                    scroller: '.main-container',
                     once: true
                 }
             });
@@ -2345,13 +2435,13 @@
                     scrollTrigger: {
                         trigger: element,
                         start: 'top 85%',
-                        scroller: '.snap-container',
+                        scroller: '.main-container',
                         once: true
                     }
                 });
             });
             
-                            // FAQ 토글 기능 - 스크롤 버그 완전 제거
+            // FAQ 토글 기능 - 스크롤 버그 완전 제거
             document.querySelectorAll('.faq-question').forEach(question => {
                 question.addEventListener('click', () => {
                     const item = question.parentElement;
@@ -2373,7 +2463,7 @@
                 scrollTrigger: {
                     trigger: '.cta-title',
                     start: 'top 80%',
-                    scroller: '.snap-container',
+                    scroller: '.main-container',
                     once: true
                 }
             });
@@ -2387,7 +2477,7 @@
                 scrollTrigger: {
                     trigger: '.cta-text',
                     start: 'top 80%',
-                    scroller: '.snap-container',
+                    scroller: '.main-container',
                     once: true
                 }
             });
@@ -2401,7 +2491,7 @@
                 scrollTrigger: {
                     trigger: '.cta-button',
                     start: 'top 80%',
-                    scroller: '.snap-container',
+                    scroller: '.main-container',
                     once: true
                 }
             });
@@ -2416,7 +2506,7 @@
                 document.querySelector('.cookie-message').classList.remove('show');
             });
             
-                        // 3D 웨이브 효과 더 가깝게 조정
+            // 3D 웨이브 효과 더 가깝게 조정
             function initThreeJS() {
                 try {
                     const canvas = document.getElementById('wave-canvas');
@@ -2589,20 +2679,8 @@
                         });
                     }
                     
-                    // 관성 스크롤 효과
-                    let currentScroll = window.scrollY;
-                    let targetScroll = currentScroll;
-                    let scrollEase = 0.05;
-                    
-                    window.addEventListener('scroll', () => {
-                        targetScroll = window.scrollY;
-                    });
-                    
                     // 애니메이션 루프
                     function animate() {
-                        // 부드러운 스크롤 애니메이션
-                        currentScroll += (targetScroll - currentScroll) * scrollEase;
-                        
                         // 파티클 위치 업데이트
                         updateParticles();
                         
@@ -2677,39 +2755,10 @@
                 });
             });
             
-            // 스크롤 깊이에 따른 시차 효과
-            snapContainer.addEventListener('scroll', function() {
-                const scrollTop = snapContainer.scrollTop;
-                const blobs = document.querySelectorAll('.blob');
-                
-                blobs.forEach((blob, index) => {
-                    const speed = index % 2 === 0 ? 0.2 : -0.2;
-                    blob.style.transform = `translateY(${scrollTop * speed}px)`;
-                });
-                
-                // 글래스 효과 카드들의 3D 효과
-                const glassCards = document.querySelectorAll('.feature-card, .faq-item');
-                glassCards.forEach(card => {
-                    if (isElementInViewport(card, snapContainer)) {
-                        const rect = card.getBoundingClientRect();
-                        const centerY = window.innerHeight / 2;
-                        const cardCenterY = rect.top + rect.height / 2;
-                        const distance = (cardCenterY - centerY) / window.innerHeight;
-                        
-                        // 거리에 비례하여 회전 각도 조절
-                        gsap.to(card, {
-                            rotateX: distance * 5,
-                            duration: 0.5,
-                            ease: "power1.out"
-                        });
-                    }
-                });
-            });
-            
             // 페이지 인디케이터 업데이트 함수
             function updatePageIndicator() {
                 // 현재 보이는 섹션 찾기
-                const sections = document.querySelectorAll('.snap-section');
+                const sections = document.querySelectorAll('.content-section');
                 let currentSectionId = null;
                 
                 sections.forEach(section => {
@@ -2729,110 +2778,6 @@
                         }
                     });
                 }
-            }
-            
-            // 스냅 스크롤 설정 함수 - 버그 수정
-            function setupSnapScroll() {
-                const container = document.querySelector('.snap-container');
-                const sections = document.querySelectorAll('.snap-section');
-                
-                // 각 섹션에 ID 확인 및 할당
-                sections.forEach(section => {
-                    if (!section.id) {
-                        section.id = 'section-' + Math.random().toString(36).substr(2, 9);
-                    }
-                });
-                
-                // 휠 이벤트 최적화 (스냅 스크롤 개선)
-                let isScrolling = false;
-                let lastScrollTime = 0;
-                const scrollCooldown = 800; // 스크롤 쿨다운 시간 감소
-                
-                container.addEventListener('wheel', function(e) {
-                    const now = Date.now();
-                    
-                    // 현재 섹션이 스냅 비활성화 상태인지 확인
-                    const currentSection = getCurrentSection();
-                    if (currentSection && currentSection.classList.contains('snap-disable')) {
-                        return; // 스냅 비활성화 섹션에서는 기본 스크롤 동작 유지
-                    }
-                    
-                    // 스크롤 쿨다운 확인
-                    if (isScrolling || now - lastScrollTime < scrollCooldown) {
-                        e.preventDefault();
-                        return;
-                    }
-                    
-                    const delta = e.deltaY;
-                    const currentSectionIndex = getCurrentSectionIndex();
-                    
-                    // 방향에 따라 다음/이전 섹션으로 이동
-                    if (delta > 0 && currentSectionIndex < sections.length - 1) {
-                        // 아래로 스크롤
-                        scrollToSection(currentSectionIndex + 1);
-                        e.preventDefault();
-                    } else if (delta < 0 && currentSectionIndex > 0) {
-                        // 위로 스크롤
-                        scrollToSection(currentSectionIndex - 1);
-                        e.preventDefault();
-                    }
-                    
-                    // 스크롤 상태 및 시간 업데이트
-                    isScrolling = true;
-                    lastScrollTime = now;
-                    
-                    // 스크롤 애니메이션 종료 후 상태 리셋
-                    setTimeout(() => {
-                        isScrolling = false;
-                    }, scrollCooldown);
-                }, { passive: false });
-                
-                // 현재 표시된 섹션 가져오기
-                function getCurrentSection() {
-                    const viewportCenter = window.innerHeight / 2;
-                    let currentSection = null;
-                    let maxVisibleArea = 0;
-                    
-                    sections.forEach(section => {
-                        const rect = section.getBoundingClientRect();
-                        const visibleHeight = Math.min(rect.bottom, window.innerHeight) - 
-                                             Math.max(rect.top, 0);
-                        
-                        if (visibleHeight > maxVisibleArea) {
-                            maxVisibleArea = visibleHeight;
-                            currentSection = section;
-                        }
-                    });
-                    
-                    return currentSection;
-                }
-                
-                // 현재 표시된 섹션 인덱스 가져오기
-                function getCurrentSectionIndex() {
-                    const section = getCurrentSection();
-                    return Array.from(sections).indexOf(section);
-                }
-                
-                // 특정 섹션으로 스크롤
-                function scrollToSection(index) {
-                    const targetSection = sections[index];
-                    
-                    gsap.to(container, {
-                        scrollTo: {
-                            y: targetSection,
-                            autoKill: false
-                        },
-                        duration: 1,
-                        ease: "power2.inOut",
-                        onComplete: updatePageIndicator
-                    });
-                }
-                
-                // 페이지 로드 시 첫 번째 섹션으로 스크롤
-                setTimeout(() => {
-                    container.scrollTop = 0;
-                    updatePageIndicator();
-                }, 200);
             }
             
             // 요소가 뷰포트 내에 있는지 확인하는 함수
@@ -2882,38 +2827,12 @@
                 });
             });
             
-            // 버튼 효과 호버 효과 제거, 클릭 효과만 유지
-            const allButtons = document.querySelectorAll('.hero-cta, .download-button, .cta-button');
-            allButtons.forEach(button => {
-                // 클릭 효과만 추가 (햅틱 피드백)
-                button.addEventListener('mousedown', function() {
-                    gsap.to(button, {
-                        scale: 0.98,
-                        duration: 0.1,
-                        ease: 'power2.in'
-                    });
-                });
-                
-                button.addEventListener('mouseup', function() {
-                    gsap.to(button, {
-                        scale: 1,
-                        duration: 0.2,
-                        ease: 'back.out(1.5)'
-                    });
-                });
-            });
-            
-            // 반복 타이핑 효과 - FLOPY 대문자로 유지 + 커서 깜빡임 효과 추가
+            // 반복 타이핑 효과 - FLOPY 대문자로 유지 + 커서 깜빡임 효과 개선
             function createLoopingTypeEffect(element, text) {
                 const originalText = text; // 원래 텍스트 저장
                 let isTyping = true; // true: 타이핑 중, false: 삭제 중
                 let currentIndex = 0;
                 let waitTimer = null;
-                
-                // 공간 유지를 위한 투명 텍스트 생성
-                function createPlaceholder(length) {
-                    return '<span style="visibility:hidden;">' + originalText + '</span>';
-                }
                 
                 function typeEffect() {
                     clearTimeout(waitTimer); // 이전 타이머 제거
@@ -2921,12 +2840,9 @@
                     if (isTyping) {
                         // 타이핑 모드
                         if (currentIndex < text.length) {
-                            // 현재까지 타이핑된 텍스트 + 남은 부분을 투명하게 + 커서
-                            element.innerHTML = text.substring(0, currentIndex + 1) +
-                                                '<span style="visibility:hidden;">' + 
-                                                text.substring(currentIndex + 1) + 
-                                                '</span>' +
-                                                '<span class="typing-cursor"></span>';
+                            // 현재까지 타이핑된 텍스트 + 커서
+                            element.innerHTML = text.substring(0, currentIndex + 1) + 
+                                               '<span class="typing-cursor"></span>';
                             currentIndex++;
                             setTimeout(typeEffect, 100); // 0.1초마다 타이핑
                         } else {
@@ -2938,58 +2854,33 @@
                     } else {
                         // 삭제 모드
                         if (currentIndex > 0) {
-                            // 현재까지 남은 텍스트 + 지운 부분을 투명하게 + 커서
-                            element.innerHTML = text.substring(0, currentIndex - 1) +
-                                                '<span style="visibility:hidden;">' + 
-                                                text.substring(currentIndex - 1) + 
-                                                '</span>' +
-                                                '<span class="typing-cursor"></span>';
+                            // 현재까지 남은 텍스트 + 커서
+                            element.innerHTML = text.substring(0, currentIndex - 1) + 
+                                               '<span class="typing-cursor"></span>';
                             currentIndex--;
                             setTimeout(typeEffect, 100); // 0.1초마다 삭제
                         } else {
-                            // 삭제 완료, 투명 텍스트로 공간 유지 후 다시 시작 (커서 유지)
-                            element.innerHTML = '<span style="visibility:hidden;">' + originalText + '</span>' +
-                                               '<span class="typing-cursor"></span>';
+                            // 삭제 완료, 다시 시작 (커서 유지)
+                            element.innerHTML = '<span class="typing-cursor"></span>';
                             isTyping = true;
                             setTimeout(typeEffect, 500); // 0.5초 대기 후 다시 시작
                         }
                     }
                 }
                 
-                // 초기 상태 설정 - 투명 텍스트로 공간 유지 + 커서
-                element.innerHTML = '<span style="visibility:hidden;">' + originalText + '</span>' +
-                                   '<span class="typing-cursor"></span>';
+                // 초기 상태 설정 - 커서만 표시
+                element.innerHTML = '<span class="typing-cursor"></span>';
                 setTimeout(typeEffect, 500); // 0.5초 후 시작
             }
             
             // 페이지 로드 시 타이틀에 반복 타이핑 효과 적용
             const heroTitle = document.querySelector('.hero-title');
             if (heroTitle) {
-                const originalText = "FLOPY"; // 대문자로 변경
+                const originalText = "FLOPY"; // 대문자로 유지
                 setTimeout(() => {
                     createLoopingTypeEffect(heroTitle, originalText);
                 }, 2200); // 로더가 사라진 후 시작
             }
-            
-            // 플로팅 요소들 랜덤 애니메이션
-            const bubbles = document.querySelectorAll('.bubble');
-            bubbles.forEach(bubble => {
-                // 각 버블마다 다른 딜레이와 듀레이션 적용
-                const delay = Math.random() * 5;
-                const duration = 10 + Math.random() * 10;
-                
-                // gsap 애니메이션 적용
-                gsap.to(bubble, {
-                    y: -30 - Math.random() * 50,
-                    x: Math.random() * 30 - 15,
-                    rotation: Math.random() * 40 - 20,
-                    duration: duration,
-                    repeat: -1,
-                    yoyo: true,
-                    ease: 'sine.inOut',
-                    delay: delay
-                });
-            });
             
             // 고급 배경 효과: 동적 그라데이션 (흑백 스타일)
             function createDynamicGradient() {
