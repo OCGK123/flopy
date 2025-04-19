@@ -1,0 +1,3639 @@
+import os
+import tempfile
+import threading
+import time
+import sys
+from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, 
+                          QPushButton, QFileDialog, QLabel, QSlider, QLineEdit,
+                          QMessageBox, QCheckBox, QFrame, QGraphicsOpacityEffect,
+                          QSizePolicy, QGraphicsDropShadowEffect, QToolButton,
+                          QProgressBar, QDialog, QComboBox, QSpinBox, QTabWidget,
+                          QStyleOptionButton, QStyle, QStyleFactory)
+from PyQt5.QtGui import (QPixmap, QIcon, QCursor, QFont, QFontDatabase, 
+                       QPainter, QColor, QPen, QBrush, QPainterPath, QImage,
+                       QRadialGradient, QKeySequence)
+from PyQt5.QtCore import (Qt, QUrl, QTimer, QPoint, QPropertyAnimation, 
+                       QEasingCurve, QParallelAnimationGroup, QRect, QRectF, QSize,
+                       pyqtSignal, QEvent, QObject, QBuffer, QByteArray, QCoreApplication, 
+                       QThread, QSettings)
+from PyQt5.QtNetwork import QNetworkRequest, QNetworkAccessManager, QNetworkReply
+from PyQt5.QtSvg import QSvgRenderer
+
+# 배경 제거 기능을 위한 라이브러리
+try:
+    from rembg import remove
+    from PIL import Image
+    REMBG_AVAILABLE = True
+except ImportError:
+    REMBG_AVAILABLE = False
+    print("rembg 라이브러리가 설치되어 있지 않습니다. 배경 제거 기능이 비활성화됩니다.")
+    print("설치하려면: pip install rembg")
+
+# SVG 아이콘 정의 (외부 파일 의존성 제거)
+class SVGIcons:
+    """SVG 아이콘 저장 클래스 - 외부 파일 의존성 제거"""
+    
+    @staticmethod
+    def get_checkmark():
+        """체크마크 아이콘 SVG"""
+        return '''
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        '''
+    
+    @staticmethod
+    def get_close():
+        """닫기 아이콘 SVG"""
+        return '''
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+        '''
+    
+    @staticmethod
+    def get_resize():
+        """리사이즈 아이콘 SVG"""
+        return '''
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#007AFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <polyline points="9 21 3 21 3 15"></polyline>
+            <line x1="21" y1="3" x2="14" y2="10"></line>
+            <line x1="3" y1="21" x2="10" y2="14"></line>
+        </svg>
+        '''
+    
+    @staticmethod
+    def get_info():
+        """정보 아이콘 SVG"""
+        return '''
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#007AFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+        '''
+    
+    @staticmethod
+    def get_settings():
+        """설정 아이콘 SVG"""
+        return '''
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#007AFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        '''
+    
+    @staticmethod
+    def get_magic_wand():
+        """마법봉(배경 제거) 아이콘 SVG"""
+        return '''
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#007AFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="4" y1="20" x2="20" y2="4"></line>
+            <path d="M14.5 4L20 4L20 9.5"></path>
+            <path d="M8.5 19.5L4 16L4.5 12"></path>
+            <line x1="12" y1="12" x2="20" y2="20"></line>
+        </svg>
+        '''
+        
+    @staticmethod
+    def get_help():
+        """도움말 아이콘 SVG"""
+        return '''
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#007AFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+        '''
+    
+    @staticmethod
+    def get_zoom_in():
+        """확대 아이콘 SVG"""
+        return '''
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#007AFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            <line x1="11" y1="8" x2="11" y2="14"></line>
+            <line x1="8" y1="11" x2="14" y2="11"></line>
+        </svg>
+        '''
+        
+    @staticmethod
+    def get_zoom_out():
+        """축소 아이콘 SVG"""
+        return '''
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#007AFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            <line x1="8" y1="11" x2="14" y2="11"></line>
+        </svg>
+        '''
+    
+    @staticmethod
+    def svg_to_pixmap(svg_content, size=QSize(24, 24), color=None):
+        """SVG 내용을 픽스맵으로 변환"""
+        try:
+            # 색상 변경이 필요한 경우
+            if color:
+                svg_content = svg_content.replace('stroke="white"', f'stroke="{color}"')
+            
+            renderer = QSvgRenderer(QByteArray(svg_content.encode()))
+            pixmap = QPixmap(size)
+            pixmap.fill(Qt.transparent)
+            
+            painter = QPainter(pixmap)
+            renderer.render(painter)
+            painter.end()
+            
+            return pixmap
+        except Exception as e:
+            print(f"SVG 변환 오류: {str(e)}")
+            # 오류 발생 시 빈 픽스맵 반환
+            empty_pixmap = QPixmap(size)
+            empty_pixmap.fill(Qt.transparent)
+            return empty_pixmap
+
+# 애니메이션 도우미 클래스
+class AnimationHelper:
+    @staticmethod
+    def fadeAnimation(widget, start, end, duration=300, finished_callback=None):
+        """페이드 애니메이션"""
+        try:
+            effect = QGraphicsOpacityEffect(widget)
+            widget.setGraphicsEffect(effect)
+            
+            animation = QPropertyAnimation(effect, b"opacity")
+            animation.setDuration(duration)
+            animation.setStartValue(start)
+            animation.setEndValue(end)
+            animation.setEasingCurve(QEasingCurve.OutCubic) # iOS 느낌의 감속 커브
+            
+            if finished_callback:
+                animation.finished.connect(finished_callback)
+                
+            animation.start()
+            return animation
+        except Exception as e:
+            print(f"페이드 애니메이션 오류: {str(e)}")
+            return None
+    
+    @staticmethod
+    def slideAnimation(widget, start_pos, end_pos, duration=300, finished_callback=None):
+        """슬라이드 애니메이션"""
+        try:
+            animation = QPropertyAnimation(widget, b"pos")
+            animation.setDuration(duration)
+            animation.setStartValue(start_pos)
+            animation.setEndValue(end_pos)
+            animation.setEasingCurve(QEasingCurve.OutCubic)
+            
+            if finished_callback:
+                animation.finished.connect(finished_callback)
+                
+            animation.start()
+            return animation
+        except Exception as e:
+            print(f"슬라이드 애니메이션 오류: {str(e)}")
+            return None
+    
+    @staticmethod
+    def fadeSlideIn(widget, direction="up", distance=50, duration=350):
+        """페이드인 + 슬라이드 애니메이션"""
+        try:
+            current_pos = widget.pos()
+            
+            if direction == "up":
+                start_pos = QPoint(current_pos.x(), current_pos.y() + distance)
+            elif direction == "down":
+                start_pos = QPoint(current_pos.x(), current_pos.y() - distance)
+            elif direction == "left":
+                start_pos = QPoint(current_pos.x() + distance, current_pos.y())
+            elif direction == "right":
+                start_pos = QPoint(current_pos.x() - distance, current_pos.y())
+            
+            # 초기 상태 설정
+            widget.move(start_pos)
+            opacity_effect = QGraphicsOpacityEffect(widget)
+            opacity_effect.setOpacity(0)
+            widget.setGraphicsEffect(opacity_effect)
+            widget.show()
+            
+            # 슬라이드 애니메이션
+            pos_anim = QPropertyAnimation(widget, b"pos")
+            pos_anim.setDuration(duration)
+            pos_anim.setStartValue(start_pos)
+            pos_anim.setEndValue(current_pos)
+            pos_anim.setEasingCurve(QEasingCurve.OutCubic)
+            
+            # 페이드 애니메이션
+            fade_anim = QPropertyAnimation(opacity_effect, b"opacity")
+            fade_anim.setDuration(duration)
+            fade_anim.setStartValue(0)
+            fade_anim.setEndValue(1.0)
+            fade_anim.setEasingCurve(QEasingCurve.OutCubic)
+            
+            # 애니메이션 그룹
+            group = QParallelAnimationGroup()
+            group.addAnimation(pos_anim)
+            group.addAnimation(fade_anim)
+            group.start()
+            
+            return group
+        except Exception as e:
+            print(f"페이드인 슬라이드 애니메이션 오류: {str(e)}")
+            return None
+
+    @staticmethod
+    def fadeSlideOut(widget, direction="down", distance=50, duration=350, finished_callback=None):
+        """페이드아웃 + 슬라이드 애니메이션"""
+        try:
+            current_pos = widget.pos()
+            
+            if direction == "down":
+                end_pos = QPoint(current_pos.x(), current_pos.y() + distance)
+            elif direction == "up":
+                end_pos = QPoint(current_pos.x(), current_pos.y() - distance)
+            elif direction == "right":
+                end_pos = QPoint(current_pos.x() + distance, current_pos.y())
+            elif direction == "left":
+                end_pos = QPoint(current_pos.x() - distance, current_pos.y())
+            
+            # 초기 상태 설정
+            opacity_effect = QGraphicsOpacityEffect(widget)
+            opacity_effect.setOpacity(1.0)
+            widget.setGraphicsEffect(opacity_effect)
+            
+            # 슬라이드 애니메이션
+            pos_anim = QPropertyAnimation(widget, b"pos")
+            pos_anim.setDuration(duration)
+            pos_anim.setStartValue(current_pos)
+            pos_anim.setEndValue(end_pos)
+            pos_anim.setEasingCurve(QEasingCurve.OutCubic)
+            
+            # 페이드 애니메이션
+            fade_anim = QPropertyAnimation(opacity_effect, b"opacity")
+            fade_anim.setDuration(duration)
+            fade_anim.setStartValue(1.0)
+            fade_anim.setEndValue(0.0)
+            fade_anim.setEasingCurve(QEasingCurve.OutCubic)
+            
+            # 애니메이션 그룹
+            group = QParallelAnimationGroup()
+            group.addAnimation(pos_anim)
+            group.addAnimation(fade_anim)
+            
+            if finished_callback:
+                group.finished.connect(finished_callback)
+                
+            group.start()
+            
+            return group
+        except Exception as e:
+            print(f"페이드아웃 슬라이드 애니메이션 오류: {str(e)}")
+            return None
+    
+    @staticmethod
+    def addShadowEffect(widget, color=QColor(0, 0, 0, 50), blur_radius=15, x_offset=0, y_offset=2):
+        """그림자 효과 추가"""
+        try:
+            shadow = QGraphicsDropShadowEffect(widget)
+            shadow.setBlurRadius(blur_radius)
+            shadow.setColor(color)
+            shadow.setOffset(x_offset, y_offset)
+            widget.setGraphicsEffect(shadow)
+            return shadow
+        except Exception as e:
+            print(f"그림자 효과 추가 오류: {str(e)}")
+            return None
+
+# iOS 색상 시스템
+class IOSColors:
+    """iOS 색상 시스템"""
+    # 기본 색상
+    PRIMARY = "#007AFF"  # iOS 파란색
+    PRIMARY_DARK = "#0062CC"  # 어두운 파란색
+    PRIMARY_LIGHT = "#66AFFF"  # 밝은 파란색
+    
+    # 시스템 색상
+    RED = "#FF3B30"  # 삭제, 오류
+    GREEN = "#34C759"  # 성공
+    ORANGE = "#FF9500"  # 경고
+    YELLOW = "#FFCC00"  # 주의
+    TEAL = "#5AC8FA"  # 알림
+    PURPLE = "#AF52DE"  # 새로운 항목
+    
+    # 배경색
+    BACKGROUND = "#FFFFFF"  # 밝은 배경
+    BACKGROUND_SECONDARY = "#F2F2F7"  # 보조 배경 (그룹 배경)
+    BACKGROUND_TERTIARY = "#E5E5EA"  # 테이블뷰 구분선
+    
+    # 텍스트
+    TEXT_PRIMARY = "#000000"  # 기본 텍스트
+    TEXT_SECONDARY = "#6E6E73"  # 보조 텍스트
+    TEXT_TERTIARY = "#8E8E93"  # 부가 정보
+    
+    # 투명도 적용
+    @staticmethod
+    def with_opacity(color, opacity):
+        """색상에 투명도 적용"""
+        try:
+            c = QColor(color)
+            c.setAlphaF(opacity)
+            return f"rgba({c.red()}, {c.green()}, {c.blue()}, {opacity})"
+        except Exception as e:
+            print(f"색상 투명도 적용 오류: {str(e)}")
+            return color  # 원래 색상 반환
+
+# iOS 스타일 버튼
+class IOSButton(QPushButton):
+    """완전히 개선된 iOS 스타일 버튼"""
+    def __init__(self, text="", parent=None, icon=None, primary=True):
+        super().__init__(text, parent)
+        self.primary = primary
+        self.setCursor(Qt.PointingHandCursor)
+        self._isHovered = False
+        self._isPressed = False
+        
+        # 아이콘 설정
+        if icon:
+            self.setIcon(icon)
+            self.setIconSize(QSize(18, 18))
+        
+        # 고정된 크기 설정 - 텍스트 잘림 방지
+        self.setMinimumHeight(44)  # iOS 기본 버튼 높이
+        self.setMinimumWidth(100)
+        
+        # 스타일 설정
+        self.updateStyle()
+    
+    def updateStyle(self):
+        """스타일 업데이트"""
+        try:
+            if self.primary:
+                # 주요 버튼 스타일 (파란색)
+                bg_color = IOSColors.PRIMARY
+                hover_color = IOSColors.PRIMARY_DARK
+                pressed_color = "#0051A8"  # 더 어두운 파란색
+                text_color = "white"
+            else:
+                # 보조 버튼 스타일 (흰색/회색)
+                bg_color = IOSColors.BACKGROUND_SECONDARY
+                hover_color = IOSColors.BACKGROUND_TERTIARY
+                pressed_color = "#D1D1D6"  # 더 어두운 회색
+                text_color = IOSColors.PRIMARY if self.isEnabled() else IOSColors.TEXT_TERTIARY
+            
+            self.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: {bg_color};
+                    color: {text_color};
+                    border: none;
+                    border-radius: 12px;
+                    padding: 12px 24px;
+                    font-weight: 600;
+                    font-size: 16px;
+                    min-height: 44px;
+                    min-width: 100px;
+                }}
+                QPushButton:hover {{
+                    background-color: {hover_color};
+                }}
+                QPushButton:pressed {{
+                    background-color: {pressed_color};
+                }}
+                QPushButton:disabled {{
+                    background-color: {IOSColors.with_opacity(bg_color, 0.5)};
+                    color: {IOSColors.with_opacity(text_color, 0.5)};
+                }}
+            """)
+        except Exception as e:
+            print(f"버튼 스타일 업데이트 오류: {str(e)}")
+    
+    def paintEvent(self, event):
+        """커스텀 페인트 이벤트로 그림자 직접 그리기"""
+        try:
+            super().paintEvent(event)
+            
+            # 페인터 생성
+            painter = QPainter(self)
+            painter.setRenderHint(QPainter.Antialiasing)
+            
+            # 버튼 영역
+            rect = self.rect()
+            
+            # 버튼 상태에 따른 그림자 그리기
+            if not self._isPressed:
+                # 일반 상태 그림자
+                blur_radius = 10 if self._isHovered else 6
+                
+                # 그림자 경로 생성
+                shadow_path = QPainterPath()
+                shadow_path.addRoundedRect(
+                    QRectF(rect.x() + 2, rect.y() + 2, rect.width() - 4, rect.height() - 4), 
+                    12, 12)
+                
+                # 그림자 색상 및 투명도
+                shadow_color = QColor(0, 0, 0, 40)
+                
+                # 그림자 그리기
+                painter.save()
+                painter.setPen(Qt.NoPen)
+                painter.setBrush(QBrush(shadow_color))
+                painter.drawPath(shadow_path.translated(0, 2))
+                painter.restore()
+            else:
+                # 누름 상태 그림자 (더 작고 진한 그림자)
+                shadow_path = QPainterPath()
+                shadow_path.addRoundedRect(
+                    QRectF(rect.x() + 2, rect.y() + 2, rect.width() - 4, rect.height() - 4), 
+                    12, 12)
+                
+                # 누름 상태 그림자 색상 및 투명도
+                shadow_color = QColor(0, 0, 0, 60)
+                
+                # 그림자 그리기
+                painter.save()
+                painter.setPen(Qt.NoPen)
+                painter.setBrush(QBrush(shadow_color))
+                painter.drawPath(shadow_path.translated(0, 1))
+                painter.restore()
+        except Exception as e:
+            print(f"버튼 그리기 오류: {str(e)}")
+    
+    def enterEvent(self, event):
+        """마우스 진입 이벤트"""
+        self._isHovered = True
+        self.update()  # 다시 그리기
+        super().enterEvent(event)
+    
+    def leaveEvent(self, event):
+        """마우스 이탈 이벤트"""
+        self._isHovered = False
+        self.update()  # 다시 그리기
+        super().leaveEvent(event)
+    
+    def mousePressEvent(self, event):
+        """마우스 클릭 이벤트"""
+        if event.button() == Qt.LeftButton:
+            self._isPressed = True
+            self.update()  # 다시 그리기
+        super().mousePressEvent(event)
+    
+    def mouseReleaseEvent(self, event):
+        """마우스 릴리즈 이벤트"""
+        if event.button() == Qt.LeftButton:
+            self._isPressed = False
+            self.update()  # 다시 그리기
+        super().mouseReleaseEvent(event)
+
+# iOS 스타일 슬라이더
+class IOSSlider(QSlider):
+    """완전히 개선된 iOS 스타일 슬라이더"""
+    def __init__(self, orientation=Qt.Horizontal, parent=None):
+        super().__init__(orientation, parent)
+        self.setCursor(Qt.PointingHandCursor)
+        self._isPressed = False
+        
+        # iOS 스타일 적용
+        self.setStyleSheet(f"""
+            QSlider::groove:horizontal {{
+                height: 8px;
+                background: {IOSColors.BACKGROUND_TERTIARY};
+                border-radius: 4px;
+                margin: 2px 0;
+            }}
+            QSlider::handle:horizontal {{
+                background: {IOSColors.PRIMARY};
+                width: 28px;
+                height: 28px;
+                margin: -10px 0;
+                border-radius: 14px;
+            }}
+            QSlider::handle:horizontal:hover {{
+                background: {IOSColors.PRIMARY_DARK};
+            }}
+            QSlider::handle:horizontal:pressed {{
+                background: #0051A8;
+            }}
+            QSlider::add-page:horizontal {{
+                background: {IOSColors.BACKGROUND_TERTIARY};
+                border-radius: 4px;
+            }}
+            QSlider::sub-page:horizontal {{
+                background: {IOSColors.PRIMARY};
+                border-radius: 4px;
+            }}
+        """)
+    
+    def paintEvent(self, event):
+        """슬라이더 커스텀 페인트"""
+        try:
+            super().paintEvent(event)
+            
+            # 슬라이더 핸들에 그림자 추가
+            if self._isPressed:
+                # 간단히 원형 그림자만 그리기
+                painter = QPainter(self)
+                painter.setRenderHint(QPainter.Antialiasing)
+                
+                # 핸들 위치 - simplify
+                pos = self.sliderPosition()
+                available = self.width() - 28  # handle width
+                x = 14 + (pos - self.minimum()) * available / max(1, (self.maximum() - self.minimum()))
+                y = self.height() / 2
+                
+                # 그림자 그리기
+                painter.setPen(Qt.NoPen)
+                painter.setBrush(QColor(0, 0, 0, 40))
+                painter.drawEllipse(int(x - 16), int(y - 12), 32, 26)
+        except Exception as e:
+            print(f"슬라이더 그리기 오류: {str(e)}")
+    
+    def mousePressEvent(self, event):
+        """마우스 클릭 이벤트"""
+        self._isPressed = True
+        self.update()  # 다시 그리기
+        super().mousePressEvent(event)
+    
+    def mouseReleaseEvent(self, event):
+        """마우스 릴리즈 이벤트"""
+        self._isPressed = False
+        self.update()  # 다시 그리기
+        super().mouseReleaseEvent(event)
+
+# iOS 스타일 체크박스
+class IOSCheckBox(QCheckBox):
+    """개선된 애플 스타일 체크박스"""
+    def __init__(self, text="", parent=None):
+        super().__init__(text, parent)
+        self.setCursor(Qt.PointingHandCursor)
+        
+        # 체크마크 아이콘 생성
+        self.checkmark_pixmap = SVGIcons.svg_to_pixmap(SVGIcons.get_checkmark(), QSize(14, 14))
+        
+        # 호버 상태 추적
+        self._isHovered = False
+        
+        # 최소 크기 설정으로 텍스트 잘림 방지
+        self.setMinimumHeight(30)
+        
+        # 스타일 설정
+        self.setStyleSheet(f"""
+            QCheckBox {{
+                color: {IOSColors.TEXT_PRIMARY};
+                font-weight: 500;
+                font-size: 16px;
+                spacing: 10px;
+                padding: 2px;
+            }}
+            QCheckBox::indicator {{
+                width: 24px;
+                height: 24px;
+                border: 1px solid {IOSColors.BACKGROUND_TERTIARY};
+                border-radius: 5px;
+                background-color: white;
+            }}
+            QCheckBox::indicator:checked {{
+                background-color: {IOSColors.PRIMARY};
+                border-color: {IOSColors.PRIMARY};
+            }}
+            QCheckBox::indicator:hover {{
+                border-color: {IOSColors.PRIMARY};
+            }}
+        """)
+    
+    def enterEvent(self, event):
+        """마우스 진입 이벤트"""
+        self._isHovered = True
+        self.update()
+        super().enterEvent(event)
+    
+    def leaveEvent(self, event):
+        """마우스 이탈 이벤트"""
+        self._isHovered = False
+        self.update()
+        super().leaveEvent(event)
+    
+    def paintEvent(self, event):
+        """체크박스 커스텀 페인트 이벤트"""
+        try:
+            super().paintEvent(event)
+            
+            # 체크 상태일 때 체크마크 아이콘 그리기
+            if self.isChecked():
+                painter = QPainter(self)
+                painter.setRenderHint(QPainter.Antialiasing)
+                
+                # 스타일 옵션 생성
+                opt = QStyleOptionButton()
+                opt.initFrom(self)
+                if self.isChecked():
+                    opt.state |= QStyle.State_On
+                else:
+                    opt.state |= QStyle.State_Off
+                    
+                rect = self.style().subElementRect(QStyle.SE_CheckBoxIndicator, opt, self)
+                
+                # 체크마크 아이콘 위치 계산
+                x = rect.x() + (rect.width() - self.checkmark_pixmap.width()) // 2
+                y = rect.y() + (rect.height() - self.checkmark_pixmap.height()) // 2
+                
+                painter.drawPixmap(x, y, self.checkmark_pixmap)
+                
+            # 호버 상태일 때 추가적인 효과
+            if self._isHovered and not self.isChecked():
+                painter = QPainter(self)
+                painter.setRenderHint(QPainter.Antialiasing)
+                
+                # 스타일 옵션 생성
+                opt = QStyleOptionButton()
+                opt.initFrom(self)
+                
+                rect = self.style().subElementRect(QStyle.SE_CheckBoxIndicator, opt, self)
+                
+                # 호버 효과용 박스 그리기 (더 밝은 테두리)
+                painter.setPen(QPen(QColor(IOSColors.PRIMARY), 2))
+                painter.setBrush(Qt.NoBrush)
+                painter.drawRoundedRect(
+                    rect.x() + 1, rect.y() + 1, rect.width() - 2, rect.height() - 2, 
+                    5, 5
+                )
+        except Exception as e:
+            print(f"체크박스 그리기 오류: {str(e)}")
+
+# 크기 조절 핸들
+class ResizeHandle(QWidget):
+    resizeSignal = pyqtSignal(QPoint)
+    
+    def __init__(self, parent=None, position="bottom-right"):
+        super().__init__(parent)
+        self.setFixedSize(20, 20)
+        
+        # 위치에 따른 커서 설정
+        if position in ["bottom-right", "top-left"]:
+            self.setCursor(Qt.SizeFDiagCursor)
+        else:  # "bottom-left", "top-right"
+            self.setCursor(Qt.SizeBDiagCursor)
+            
+        self.position = position
+        self.dragging = False
+        self.setMouseTracking(True)
+        
+        # 반투명 배경
+        self.setStyleSheet("background-color: transparent;")
+        
+        # 리사이즈 아이콘
+        self.resize_icon = SVGIcons.svg_to_pixmap(SVGIcons.get_resize(), QSize(16, 16))
+    
+    def paintEvent(self, event):
+        """핸들 그리기"""
+        try:
+            painter = QPainter(self)
+            painter.setRenderHint(QPainter.Antialiasing)
+            
+            # 아이콘 그리기
+            painter.drawPixmap(2, 2, self.resize_icon)
+        except Exception as e:
+            print(f"리사이즈 핸들 그리기 오류: {str(e)}")
+    
+    def mousePressEvent(self, event):
+        """마우스 클릭 이벤트"""
+        if event.button() == Qt.LeftButton:
+            self.dragging = True
+            self.start_pos = event.globalPos()
+    
+    def mouseMoveEvent(self, event):
+        """마우스 이동 이벤트"""
+        if self.dragging:
+            # 현재 포지션과의 델타 계산
+            delta = event.globalPos() - self.start_pos
+            self.start_pos = event.globalPos()
+            
+            # 리사이즈 시그널 발생
+            self.resizeSignal.emit(delta)
+    
+    def mouseReleaseEvent(self, event):
+        """마우스 릴리즈 이벤트"""
+        if event.button() == Qt.LeftButton:
+            self.dragging = False
+
+# 커스텀 타이틀 바
+class CustomTitleBar(QFrame):
+    """개선된 Apple 스타일 타이틀 바"""
+    closeClicked = pyqtSignal()
+    
+    def __init__(self, parent=None, title=""):
+        super().__init__(parent)
+        self.parent = parent
+        self.setFixedHeight(54)  # 높이 증가
+        
+        # 스타일
+        self.setStyleSheet(f"""
+            CustomTitleBar {{
+                background-color: {IOSColors.with_opacity(IOSColors.BACKGROUND_SECONDARY, 0.92)};
+                border-top-left-radius: 15px;
+                border-top-right-radius: 15px;
+                border-bottom: 1px solid {IOSColors.with_opacity("#000000", 0.1)};
+            }}
+        """)
+        
+        # 레이아웃
+        self.layout = QHBoxLayout(self)
+        self.layout.setContentsMargins(25, 0, 25, 0)
+        self.layout.setSpacing(15)
+        
+        # 닫기 버튼
+        self.closeButton = QToolButton()
+        self.closeButton.setCursor(Qt.PointingHandCursor)
+        self.closeButton.setFixedSize(26, 26)
+        self.closeButton.setStyleSheet(f"""
+            QToolButton {{
+                background-color: {IOSColors.RED};
+                border-radius: 13px;
+                border: none;
+            }}
+            QToolButton:hover {{
+                background-color: #FF6961;
+            }}
+            QToolButton:pressed {{
+                background-color: #E0352B;
+            }}
+        """)
+        
+        # 닫기 아이콘
+        close_icon = SVGIcons.svg_to_pixmap(SVGIcons.get_close(), QSize(12, 12))
+        self.closeButton.setIcon(QIcon(close_icon))
+        self.closeButton.setIconSize(QSize(12, 12))
+        
+        self.closeButton.clicked.connect(self.closeClicked.emit)
+        
+        # 타이틀
+        self.titleLabel = QLabel(title)
+        self.titleLabel.setStyleSheet(f"""
+            color: {IOSColors.TEXT_PRIMARY};
+            font-size: 17px;
+            font-weight: 600;
+        """)
+        self.titleLabel.setAlignment(Qt.AlignCenter)
+        
+        # 레이아웃 배치
+        self.layout.addWidget(self.closeButton)
+        self.layout.addWidget(self.titleLabel, 1)  # 1은 stretch factor
+        
+        # 설정 버튼 자리를 위한 공간 (기본적으로 비어있음)
+        self.settingsButton = QToolButton()
+        self.settingsButton.setFixedSize(26, 26)
+        self.settingsButton.setStyleSheet("background-color: transparent; border: none;")
+        self.settingsButton.setVisible(False)  # 기본적으로 숨김
+        self.layout.addWidget(self.settingsButton)
+        
+        # 마우스 이벤트 설정
+        self.pressing = False
+        self.mouseMovePos = None
+    
+    def addSettingsButton(self, button):
+        """설정 버튼 추가"""
+        try:
+            # 기존 버튼 제거
+            if self.settingsButton:
+                self.layout.removeWidget(self.settingsButton)
+                self.settingsButton.deleteLater()
+            
+            # 새 버튼 추가
+            self.settingsButton = button
+            self.settingsButton.setVisible(True)
+            self.layout.addWidget(self.settingsButton)
+        except Exception as e:
+            print(f"설정 버튼 추가 오류: {str(e)}")
+    
+    def mousePressEvent(self, event):
+        """마우스 클릭 이벤트"""
+        if event.button() == Qt.LeftButton:
+            self.pressing = True
+            self.mouseMovePos = event.globalPos()
+    
+    def mouseMoveEvent(self, event):
+        """마우스 이동 이벤트"""
+        if self.pressing and self.mouseMovePos:
+            delta = event.globalPos() - self.mouseMovePos
+            self.mouseMovePos = event.globalPos()
+            
+            # 부모 창 이동
+            if self.parent:
+                self.parent.move(self.parent.pos() + delta)
+    
+    def mouseReleaseEvent(self, event):
+        """마우스 릴리즈 이벤트"""
+        if event.button() == Qt.LeftButton:
+            self.pressing = False
+            self.mouseMovePos = None
+
+# 투명도 조절이 가능한 이미지 라벨
+class TransparentImageLabel(QLabel):
+    """투명도 조절이 가능한 이미지 라벨"""
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setAlignment(Qt.AlignCenter)
+        
+        # 투명도 효과 설정
+        self.opacity_effect = QGraphicsOpacityEffect(self)
+        self.opacity_effect.setOpacity(1.0)  # 기본값: 완전 불투명
+        self.setGraphicsEffect(self.opacity_effect)
+        
+        # 배경 투명 설정
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setStyleSheet("background-color: transparent;")
+        
+        # 드래그 및 드롭 지원 추가
+        self.setAcceptDrops(True)
+        
+        # 체스판 패턴 배경용 변수 - 항상 꺼두기
+        self.show_transparency_grid = False
+        
+        # 레이아웃 요소 추가 (텍스트 잘림 방지)
+        self.setContentsMargins(10, 10, 10, 10)
+        self.setMinimumSize(100, 100)
+        
+        # 드래그 지원 변수
+        self.dragging = False
+        self.dragStartPosition = None
+    
+    def setImageOpacity(self, value):
+        """이미지 투명도 설정 (0.0 ~ 1.0)"""
+        try:
+            if self.opacity_effect:
+                self.opacity_effect.setOpacity(value)
+        except Exception as e:
+            print(f"투명도 설정 오류: {str(e)}")
+    
+    def toggleTransparencyGrid(self, show):
+        """투명 배경 그리드 표시 토글 - 항상 꺼두기"""
+        self.show_transparency_grid = False  # 항상 False로 설정
+        self.update()
+    
+    def paintEvent(self, event):
+        """커스텀 페인트 이벤트 - 배경은 항상 투명하게"""
+        try:
+            if self.pixmap() and not self.pixmap().isNull():
+                painter = QPainter(self)
+                painter.setRenderHint(QPainter.Antialiasing)
+                
+                # 픽스맵이 표시될 영역 계산
+                pixmap = self.pixmap()
+                target_rect = self.getScaledPixmapRect()
+                
+                # 투명 배경 - 그리드 표시 없이 그냥 투명하게
+                # QLabel의 기본 그리기 작업을 수행하지 않고 직접 그려줌
+                painter.drawPixmap(target_rect, pixmap)
+            else:
+                # 기본 그리기
+                super().paintEvent(event)
+        except Exception as e:
+            print(f"이미지 라벨 그리기 오류: {str(e)}")
+            super().paintEvent(event)
+    
+    def getScaledPixmapRect(self):
+        """스케일된 픽스맵의 영역 계산"""
+        try:
+            if not self.pixmap() or self.pixmap().isNull():
+                return QRect()
+                
+            # 픽스맵과 위젯 크기
+            pixmap_size = self.pixmap().size()
+            widget_size = self.size()
+            
+            # 비율 계산 (0으로 나누기 방지)
+            width_ratio = widget_size.width() / max(1, pixmap_size.width())
+            height_ratio = widget_size.height() / max(1, pixmap_size.height())
+            ratio = min(width_ratio, height_ratio)
+            
+            # 새 크기
+            new_width = max(1, int(pixmap_size.width() * ratio))
+            new_height = max(1, int(pixmap_size.height() * ratio))
+            
+            # 중앙 위치 계산
+            x = (widget_size.width() - new_width) // 2
+            y = (widget_size.height() - new_height) // 2
+            
+            return QRect(x, y, new_width, new_height)
+        except Exception as e:
+            print(f"스케일 계산 오류: {str(e)}")
+            return QRect(0, 0, 100, 100)  # 기본값 반환
+    
+    def mousePressEvent(self, event):
+        """마우스 클릭 이벤트 - 드래그 시작"""
+        if event.button() == Qt.LeftButton:
+            self.dragging = True
+            self.dragStartPosition = event.pos()
+            self.setCursor(Qt.ClosedHandCursor)
+    
+    def mouseMoveEvent(self, event):
+        """마우스 이동 이벤트 - 이미지 드래그"""
+        if self.dragging and (event.buttons() & Qt.LeftButton):
+            # 부모 뷰어에 드래그 이벤트 전달
+            parent = self.parent()
+            if parent and hasattr(parent, 'handleImageDrag'):
+                delta = event.pos() - self.dragStartPosition
+                parent.handleImageDrag(delta)
+    
+    def mouseReleaseEvent(self, event):
+        """마우스 릴리즈 이벤트 - 드래그 종료"""
+        if event.button() == Qt.LeftButton:
+            self.dragging = False
+            self.setCursor(Qt.ArrowCursor)
+    
+    def dragEnterEvent(self, event):
+        """드래그 진입 이벤트 - 이미지 파일만 수락"""
+        if event.mimeData().hasUrls():
+            for url in event.mimeData().urls():
+                if url.isLocalFile():
+                    file_path = url.toLocalFile()
+                    if file_path.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
+                        event.acceptProposedAction()
+                        return
+        
+        event.ignore()
+    
+    def dropEvent(self, event):
+        """드롭 이벤트 - 이미지 로드"""
+        if event.mimeData().hasUrls():
+            for url in event.mimeData().urls():
+                if url.isLocalFile():
+                    file_path = url.toLocalFile()
+                    if file_path.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
+                        # 부모 뷰어가 있으면 이미지 로드 요청
+                        parent = self.parent()
+                        while parent:
+                            if hasattr(parent, 'loadImageFromFile'):
+                                parent.loadImageFromFile(file_path)
+                                event.acceptProposedAction()
+                                return
+                            parent = parent.parent()
+        
+        event.ignore()
+
+# 상태 메시지 라벨
+class StatusMessageLabel(QFrame):
+    """애플 스타일 알림 메시지 레이블 - QFrame 기반으로 변경"""
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        
+        # 레이아웃 설정
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(15, 15, 15, 15)
+        
+        # 실제 텍스트 표시할 라벨
+        self.textLabel = QLabel()
+        self.textLabel.setAlignment(Qt.AlignCenter)
+        self.textLabel.setWordWrap(True)
+        self.textLabel.setStyleSheet("""
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+            background-color: transparent;
+        """)
+        
+        layout.addWidget(self.textLabel)
+        
+        # 스타일 설정
+        self.setStyleSheet(f"""
+            background-color: {IOSColors.with_opacity("#000000", 0.75)};
+            border-radius: 14px;
+        """)
+        self.setVisible(False)
+        
+        # 크기 설정
+        self.setFixedWidth(400)
+        self.setMinimumHeight(50)
+        
+        # 타이머
+        self.hideTimer = QTimer(self)
+        self.hideTimer.setSingleShot(True)
+        self.hideTimer.timeout.connect(self.hideWithAnimation)
+        
+        # 애니메이션 객체
+        self.fadeAnimation = None
+    
+    def paintEvent(self, event):
+        """커스텀 페인트 이벤트 - 배경에 블러 효과 추가"""
+        try:
+            painter = QPainter(self)
+            painter.setRenderHint(QPainter.Antialiasing)
+            
+            # 배경 그리기 (QRectF 사용)
+            path = QPainterPath()
+            path.addRoundedRect(QRectF(0, 0, float(self.width()), float(self.height())), 14.0, 14.0)
+            
+            # 그림자 효과
+            painter.setPen(Qt.NoPen)
+            
+            # 블러 배경 (iOS 스타일) - 복수 레이어로 그리기
+            painter.setBrush(QColor(0, 0, 0, 100))
+            painter.drawPath(path.translated(0, 2))
+            
+            # 메인 배경
+            painter.setBrush(QColor(50, 50, 50, 190))
+            painter.drawPath(path)
+        except Exception as e:
+            print(f"상태 메시지 배경 그리기 오류: {str(e)}")
+        
+        # 기본 그리기 실행
+        super().paintEvent(event)
+    
+    def showMessage(self, message, timeout=3000):
+        """메시지 표시"""
+        try:
+            # 이전 타이머 취소
+            if self.hideTimer.isActive():
+                self.hideTimer.stop()
+            
+            # 이전 애니메이션 취소
+            if hasattr(self, 'fadeAnimation') and self.fadeAnimation and self.fadeAnimation.state() == QPropertyAnimation.Running:
+                self.fadeAnimation.stop()
+            
+            # 메시지 설정
+            self.textLabel.setText(message)
+            
+            # 크기 조정
+            self.adjustSize()
+            
+            # 너비가 최소값보다 작으면 조정
+            if self.width() < 300:
+                self.setFixedWidth(300)
+            
+            # 위치 조정 (부모 위젯 중앙 하단)
+            if self.parent():
+                self.move(
+                    (self.parent().width() - self.width()) // 2,
+                    self.parent().height() - self.height() - 40  # 더 넓은 여백
+                )
+            
+            # 페이드인 애니메이션
+            self.setVisible(True)
+            
+            effect = QGraphicsOpacityEffect(self)
+            self.setGraphicsEffect(effect)
+            effect.setOpacity(0.0)
+            
+            self.fadeAnimation = QPropertyAnimation(effect, b"opacity")
+            self.fadeAnimation.setDuration(250)
+            self.fadeAnimation.setStartValue(0.0)
+            self.fadeAnimation.setEndValue(1.0)
+            self.fadeAnimation.setEasingCurve(QEasingCurve.OutCubic)
+            self.fadeAnimation.start()
+            
+            # 타이머 설정
+            self.hideTimer.start(timeout)
+        except Exception as e:
+            print(f"상태 메시지 표시 오류: {str(e)}")
+    
+    def hideWithAnimation(self):
+        """애니메이션과 함께 숨기기"""
+        try:
+            # 페이드아웃 애니메이션
+            if self.graphicsEffect():
+                self.fadeAnimation = QPropertyAnimation(self.graphicsEffect(), b"opacity")
+                self.fadeAnimation.setDuration(250)
+                self.fadeAnimation.setStartValue(1.0)
+                self.fadeAnimation.setEndValue(0.0)
+                self.fadeAnimation.setEasingCurve(QEasingCurve.OutCubic)
+                self.fadeAnimation.finished.connect(lambda: self.setVisible(False))
+                self.fadeAnimation.start()
+        except Exception as e:
+            print(f"상태 메시지 숨기기 오류: {str(e)}")
+            self.setVisible(False)  # 오류 발생 시 즉시 숨김
+
+# 도움말 다이얼로그
+class HelpDialog(QDialog):
+    """도움말 다이얼로그"""
+    def __init__(self, parent=None):
+        super().__init__(parent, Qt.FramelessWindowHint)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setModal(True)
+        
+        # 레이아웃
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        
+        # 배경 프레임
+        bgFrame = QFrame()
+        bgFrame.setStyleSheet(f"""
+            background-color: {IOSColors.with_opacity(IOSColors.BACKGROUND, 0.95)};
+            border-radius: 15px;
+        """)
+        
+        # 그림자 효과
+        AnimationHelper.addShadowEffect(bgFrame, QColor(0, 0, 0, 80), 20, 0, 10)
+        
+        # 콘텐츠 레이아웃
+        contentLayout = QVBoxLayout(bgFrame)
+        contentLayout.setContentsMargins(25, 25, 25, 25)
+        contentLayout.setSpacing(15)
+        
+        # 다이얼로그 제목
+        titleLabel = QLabel("도움말")
+        titleLabel.setStyleSheet(f"""
+            color: {IOSColors.TEXT_PRIMARY};
+            font-size: 22px;
+            font-weight: bold;
+        """)
+        titleLabel.setAlignment(Qt.AlignCenter)
+        contentLayout.addWidget(titleLabel)
+        
+        # 단축키 설명
+        shortcutsFrame = QFrame()
+        shortcutsFrame.setStyleSheet(f"""
+            background-color: {IOSColors.BACKGROUND_SECONDARY};
+            border-radius: 10px;
+            padding: 10px;
+        """)
+        
+        shortcutsLayout = QVBoxLayout(shortcutsFrame)
+        
+        shortcutsLabel = QLabel("""
+        <b>단축키:</b>
+        <table style="margin-top: 10px; margin-left: 10px;">
+            <tr><td><b>ESC</b></td><td style="padding-left: 15px;">뷰어 닫기</td></tr>
+            <tr><td><b>P</b></td><td style="padding-left: 15px;">고정 모드 (클릭 통과)</td></tr>
+            <tr><td><b>+/-</b></td><td style="padding-left: 15px;">확대/축소</td></tr>
+            <tr><td><b>I</b></td><td style="padding-left: 15px;">이미지 정보</td></tr>
+            <tr><td><b>H</b></td><td style="padding-left: 15px;">도움말</td></tr>
+            <tr><td><b>R</b></td><td style="padding-left: 15px;">배경 제거</td></tr>
+            <tr><td><b>S</b></td><td style="padding-left: 15px;">설정</td></tr>
+            <tr><td><b>방향키</b></td><td style="padding-left: 15px;">이미지 위치 조정</td></tr>
+            <tr><td><b>Ctrl+마우스휠</b></td><td style="padding-left: 15px;">확대/축소</td></tr>
+        </table>
+        """)
+        shortcutsLabel.setStyleSheet(f"""
+            color: {IOSColors.TEXT_PRIMARY};
+            font-size: 14px;
+            line-height: 150%;
+        """)
+        shortcutsLayout.addWidget(shortcutsLabel)
+        
+        contentLayout.addWidget(shortcutsFrame)
+        
+        # 기능 설명
+        featuresFrame = QFrame()
+        featuresFrame.setStyleSheet(f"""
+            background-color: {IOSColors.BACKGROUND_SECONDARY};
+            border-radius: 10px;
+            padding: 10px;
+        """)
+        
+        featuresLayout = QVBoxLayout(featuresFrame)
+        
+        featuresLabel = QLabel("""
+        <b>주요 기능:</b>
+        <ul style="margin-top: 10px;">
+            <li>이미지 투명도 조절</li>
+            <li>고정 모드 (이미지 영역만 클릭 통과)</li>
+            <li>드래그로 이미지 이동</li>
+            <li>확대/축소 기능</li>
+            <li>이미지 정보 표시</li>
+            <li>배경 제거 (PNG가 아닌 이미지용)</li>
+            <li>창 크기 조절</li>
+        </ul>
+        """)
+        featuresLabel.setStyleSheet(f"""
+            color: {IOSColors.TEXT_PRIMARY};
+            font-size: 14px;
+            line-height: 150%;
+        """)
+        featuresLayout.addWidget(featuresLabel)
+        
+        contentLayout.addWidget(featuresFrame)
+        
+        # 버튼
+        closeButton = IOSButton("닫기")
+        closeButton.clicked.connect(self.accept)
+        contentLayout.addWidget(closeButton)
+        
+        layout.addWidget(bgFrame)
+        
+        # 적절한 크기 설정
+        self.setMinimumWidth(400)
+        self.adjustSize()
+        
+        # 화면 중앙 배치
+        if parent:
+            self.moveToParentCenter()
+    
+    def moveToParentCenter(self):
+        """부모 위젯 중앙에 배치"""
+        try:
+            if self.parent():
+                parentGeometry = self.parent().geometry()
+                x = parentGeometry.x() + (parentGeometry.width() - self.width()) // 2
+                y = parentGeometry.y() + (parentGeometry.height() - self.height()) // 2
+                self.move(x, y)
+        except Exception as e:
+            print(f"다이얼로그 위치 설정 오류: {str(e)}")
+    
+    def showEvent(self, event):
+        """다이얼로그 표시 이벤트"""
+        super().showEvent(event)
+        # 페이드인 애니메이션
+        AnimationHelper.fadeAnimation(self, 0, 1, 250)
+        self.moveToParentCenter()
+
+# 설정 다이얼로그
+class SettingsDialog(QDialog):
+    """설정 다이얼로그"""
+    settingsChanged = pyqtSignal()
+    
+    def __init__(self, parent=None):
+        try:
+            super().__init__(parent, Qt.FramelessWindowHint)
+            self.setAttribute(Qt.WA_TranslucentBackground)
+            self.setModal(True)
+            
+            # 오류 방지를 위한 기본 설정값
+            self.grid_size = 10
+            self.grid_style = 0
+            self.auto_bg_removal = True
+            self.default_always_on_top = False
+            self.auto_close = 0
+            self.model = 0
+            self.alpha_quality = 100
+            self.retouch = True
+            self.background_fill = False
+            
+            # 레이아웃
+            layout = QVBoxLayout(self)
+            layout.setContentsMargins(0, 0, 0, 0)
+            
+            # 배경 프레임 - 투명하지 않게 변경
+            bgFrame = QFrame()
+            bgFrame.setStyleSheet(f"""
+                background-color: {IOSColors.BACKGROUND};
+                border-radius: 15px;
+                border: 1px solid {IOSColors.BACKGROUND_TERTIARY};
+            """)
+            
+            # 그림자 효과
+            shadow = QGraphicsDropShadowEffect(bgFrame)
+            shadow.setBlurRadius(20)
+            shadow.setColor(QColor(0, 0, 0, 80))
+            shadow.setOffset(0, 10)
+            bgFrame.setGraphicsEffect(shadow)
+            
+            # 콘텐츠 레이아웃
+            contentLayout = QVBoxLayout(bgFrame)
+            contentLayout.setContentsMargins(20, 20, 20, 20)
+            contentLayout.setSpacing(15)
+            
+            # 다이얼로그 제목
+            titleLabel = QLabel("설정")
+            titleLabel.setStyleSheet(f"""
+                color: {IOSColors.TEXT_PRIMARY};
+                font-size: 22px;
+                font-weight: bold;
+                padding-bottom: 10px;
+            """)
+            titleLabel.setAlignment(Qt.AlignCenter)
+            contentLayout.addWidget(titleLabel)
+            
+            # 일반 설정 섹션
+            generalFrame = QFrame()
+            generalFrame.setStyleSheet(f"""
+                background-color: {IOSColors.BACKGROUND_SECONDARY};
+                border-radius: 10px;
+                padding: 10px;
+            """)
+            
+            generalLayout = QVBoxLayout(generalFrame)
+            generalLayout.setSpacing(15)
+            
+            # 자동 배경 제거 체크박스
+            bgRemovalLayout = QHBoxLayout()
+            self.autoBackgroundRemovalCheckbox = IOSCheckBox("PNG가 아닌 이미지에 자동 배경 제거 제안")
+            self.autoBackgroundRemovalCheckbox.setChecked(True)
+            
+            bgRemovalLayout.addWidget(self.autoBackgroundRemovalCheckbox)
+            generalLayout.addLayout(bgRemovalLayout)
+            
+            # 항상 위에 표시 기본값
+            alwaysOnTopLayout = QHBoxLayout()
+            self.defaultAlwaysOnTopCheckbox = IOSCheckBox("기본값: 고정 모드 활성화")
+            self.defaultAlwaysOnTopCheckbox.setChecked(False)
+            
+            alwaysOnTopLayout.addWidget(self.defaultAlwaysOnTopCheckbox)
+            generalLayout.addLayout(alwaysOnTopLayout)
+            
+            # 자동 종료 설정
+            autoCloseLayout = QHBoxLayout()
+            autoCloseLabel = QLabel("이미지 닫을 때:")
+            autoCloseLabel.setStyleSheet("font-size: 14px;")
+            
+            self.autoCloseComboBox = QComboBox()
+            self.autoCloseComboBox.addItem("선택 화면으로 돌아가기")
+            self.autoCloseComboBox.addItem("프로그램 완전히 종료")
+            self.autoCloseComboBox.setStyleSheet("""
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                padding: 5px;
+                min-width: 150px;
+            """)
+            
+            autoCloseLayout.addWidget(autoCloseLabel)
+            autoCloseLayout.addWidget(self.autoCloseComboBox)
+            autoCloseLayout.addStretch(1)
+            
+            generalLayout.addLayout(autoCloseLayout)
+            
+            contentLayout.addWidget(generalFrame)
+            
+            # 버튼 레이아웃
+            buttonLayout = QHBoxLayout()
+            buttonLayout.setSpacing(15)
+            
+            # 취소 버튼
+            self.cancelButton = IOSButton("취소", primary=False)
+            self.cancelButton.clicked.connect(self.reject)
+            
+            # 저장 버튼
+            self.saveButton = IOSButton("저장", primary=True)
+            self.saveButton.clicked.connect(self.saveSettings)
+            
+            buttonLayout.addWidget(self.cancelButton)
+            buttonLayout.addWidget(self.saveButton)
+            
+            contentLayout.addLayout(buttonLayout)
+            
+            layout.addWidget(bgFrame)
+            
+            # 적절한 크기 설정
+            self.setMinimumWidth(400)
+            self.adjustSize()
+            
+            # 화면 중앙 배치
+            if parent:
+                self.moveToParentCenter()
+                
+        except Exception as e:
+            print(f"설정 다이얼로그 초기화 오류: {str(e)}")
+    
+    def moveToParentCenter(self):
+        """부모 위젯 중앙에 배치"""
+        try:
+            if self.parent():
+                parentGeometry = self.parent().geometry()
+                x = parentGeometry.x() + (parentGeometry.width() - self.width()) // 2
+                y = parentGeometry.y() + (parentGeometry.height() - self.height()) // 2
+                self.move(x, y)
+        except Exception as e:
+            print(f"다이얼로그 위치 설정 오류: {str(e)}")
+    
+    def saveSettings(self):
+        """설정 저장"""
+        try:
+            self.settingsChanged.emit()
+            self.accept()
+        except Exception as e:
+            print(f"설정 저장 오류: {str(e)}")
+    
+    def loadSettings(self, settings):
+        """설정 불러오기"""
+        try:
+            # 안전하게 설정값 로드
+            if settings and isinstance(settings, dict):
+                # 자동 배경 제거
+                if 'auto_bg_removal' in settings:
+                    self.autoBackgroundRemovalCheckbox.setChecked(settings['auto_bg_removal'])
+                    self.auto_bg_removal = settings['auto_bg_removal']
+                
+                # 항상 위에 표시 기본값
+                if 'default_always_on_top' in settings:
+                    self.defaultAlwaysOnTopCheckbox.setChecked(settings['default_always_on_top'])
+                    self.default_always_on_top = settings['default_always_on_top']
+                
+                # 자동 종료
+                if 'auto_close' in settings and 0 <= settings['auto_close'] < self.autoCloseComboBox.count():
+                    self.autoCloseComboBox.setCurrentIndex(settings['auto_close'])
+                    self.auto_close = settings['auto_close']
+        except Exception as e:
+            print(f"설정 로드 오류: {str(e)}")
+    
+    def getSettings(self):
+        """현재 설정 값 반환"""
+        try:
+            settings = {
+                'auto_bg_removal': self.autoBackgroundRemovalCheckbox.isChecked(),
+                'default_always_on_top': self.defaultAlwaysOnTopCheckbox.isChecked(),
+                'auto_close': self.autoCloseComboBox.currentIndex()
+            }
+            
+            return settings
+        except Exception as e:
+            print(f"설정 값 반환 오류: {str(e)}")
+            # 기본 설정값 반환
+            return {
+                'auto_bg_removal': self.auto_bg_removal,
+                'default_always_on_top': self.default_always_on_top,
+                'auto_close': self.auto_close
+            }
+    
+    def showEvent(self, event):
+        """다이얼로그 표시 이벤트"""
+        try:
+            super().showEvent(event)
+            # 페이드인 애니메이션
+            AnimationHelper.fadeAnimation(self, 0, 1, 250)
+            self.moveToParentCenter()
+        except Exception as e:
+            print(f"다이얼로그 표시 오류: {str(e)}")
+
+# 이미지 정보 다이얼로그
+class ImageInfoDialog(QDialog):
+    """이미지 정보 다이얼로그"""
+    removeBackgroundClicked = pyqtSignal()
+    
+    def __init__(self, parent=None, image_info=None):
+        super().__init__(parent)
+        self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        
+        # 레이아웃
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        
+        # 배경 프레임
+        self.bgFrame = QFrame()
+        self.bgFrame.setStyleSheet(f"""
+            background-color: {IOSColors.with_opacity(IOSColors.BACKGROUND, 0.95)};
+            border-radius: 15px;
+        """)
+        
+        # 그림자 효과
+        AnimationHelper.addShadowEffect(self.bgFrame, QColor(0, 0, 0, 70), 20, 0, 10)
+        
+        bgLayout = QVBoxLayout(self.bgFrame)
+        bgLayout.setContentsMargins(0, 0, 0, 0)
+        bgLayout.setSpacing(0)
+        
+        # 커스텀 타이틀 바
+        self.titleBar = CustomTitleBar(self.bgFrame, "이미지 정보")
+        self.titleBar.closeClicked.connect(self.close)
+        bgLayout.addWidget(self.titleBar)
+        
+        # 콘텐츠 영역
+        contentFrame = QFrame()
+        contentFrame.setStyleSheet("background: transparent;")
+        contentLayout = QVBoxLayout(contentFrame)
+        contentLayout.setContentsMargins(20, 15, 20, 20)
+        contentLayout.setSpacing(10)
+        
+        # 정보 표시
+        if image_info:
+            # 파일 정보
+            if 'file_path' in image_info:
+                fileLabel = QLabel(f"<b>파일 경로:</b> {image_info['file_path']}")
+                fileLabel.setWordWrap(True)
+                fileLabel.setStyleSheet(f"color: {IOSColors.TEXT_PRIMARY}; font-size: 13px;")
+                contentLayout.addWidget(fileLabel)
+            
+            # 크기 정보
+            if 'width' in image_info and 'height' in image_info:
+                sizeLabel = QLabel(f"<b>크기:</b> {image_info['width']} x {image_info['height']} 픽셀")
+                sizeLabel.setStyleSheet(f"color: {IOSColors.TEXT_PRIMARY}; font-size: 13px;")
+                contentLayout.addWidget(sizeLabel)
+            
+            # 파일 크기
+            if 'file_size' in image_info:
+                fileSizeLabel = QLabel(f"<b>파일 크기:</b> {image_info['file_size']}")
+                fileSizeLabel.setStyleSheet(f"color: {IOSColors.TEXT_PRIMARY}; font-size: 13px;")
+                contentLayout.addWidget(fileSizeLabel)
+            
+            # 색상 포맷
+            if 'format' in image_info:
+                formatLabel = QLabel(f"<b>색상 포맷:</b> {image_info['format']}")
+                formatLabel.setStyleSheet(f"color: {IOSColors.TEXT_PRIMARY}; font-size: 13px;")
+                contentLayout.addWidget(formatLabel)
+            
+            # 투명도 정보
+            if 'has_alpha' in image_info:
+                alphaText = "있음" if image_info['has_alpha'] else "없음"
+                alphaLabel = QLabel(f"<b>투명도:</b> {alphaText}")
+                alphaLabel.setStyleSheet(f"color: {IOSColors.TEXT_PRIMARY}; font-size: 13px;")
+                contentLayout.addWidget(alphaLabel)
+            
+            # 파일 형식
+            if 'file_type' in image_info:
+                fileTypeLabel = QLabel(f"<b>파일 형식:</b> {image_info['file_type']}")
+                fileTypeLabel.setStyleSheet(f"color: {IOSColors.TEXT_PRIMARY}; font-size: 13px;")
+                contentLayout.addWidget(fileTypeLabel)
+        
+        # 구분선
+        line = QFrame()
+        line.setFrameShape(QFrame.HLine)
+        line.setFrameShadow(QFrame.Sunken)
+        line.setStyleSheet(f"border: 1px solid {IOSColors.BACKGROUND_TERTIARY};")
+        contentLayout.addWidget(line)
+        
+        # 배경 제거 버튼 (PNG가 아닌 경우에만 표시)
+        if image_info and 'has_alpha' in image_info and not image_info['has_alpha'] and REMBG_AVAILABLE:
+            removeButton = IOSButton("배경 제거", primary=True)
+            removeButton.clicked.connect(self.removeBackgroundClicked.emit)
+            contentLayout.addWidget(removeButton)
+        
+        # 버튼
+        closeButton = IOSButton("닫기")
+        closeButton.clicked.connect(self.close)
+        contentLayout.addWidget(closeButton)
+        
+        # 단축키 안내 추가
+        shortcutText = """
+        <b>ESC:</b> 뷰어 닫기 <b>•</b> <b>P:</b> 고정 모드 <b>•</b> <b>+/-:</b> 확대/축소 <b>•</b> <b>I:</b> 정보 <b>•</b> <b>H:</b> 도움말 <b>•</b> <b>R:</b> 배경 제거 <b>•</b> <b>S:</b> 설정
+        """
+        shortcutLabel = QLabel(shortcutText)
+        shortcutLabel.setAlignment(Qt.AlignCenter)
+        shortcutLabel.setStyleSheet(f"""
+            color: {IOSColors.TEXT_SECONDARY};
+            background-color: {IOSColors.with_opacity(IOSColors.BACKGROUND_SECONDARY, 0.7)};
+            font-size: 14px;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 5px 0;
+        """)
+        contentLayout.addWidget(shortcutLabel)
+        
+        bgLayout.addWidget(contentFrame)
+        layout.addWidget(self.bgFrame)
+        
+        # 크기 조정
+        self.adjustSize()
+        
+        # 중앙 정렬
+        if parent:
+            self.moveToCenter()
+    
+    def moveToCenter(self):
+        """부모 위젯 중앙에 배치"""
+        try:
+            if self.parent():
+                x = self.parent().x() + (self.parent().width() - self.width()) // 2
+                y = self.parent().y() + (self.parent().height() - self.height()) // 2
+                self.move(x, y)
+        except Exception as e:
+            print(f"다이얼로그 위치 설정 오류: {str(e)}")
+    
+    def showEvent(self, event):
+        """표시 이벤트 - 애니메이션"""
+        super().showEvent(event)
+        AnimationHelper.fadeSlideIn(self, "up", 30, 300)
+        self.moveToCenter()
+    
+    def closeEvent(self, event):
+        """닫기 이벤트 - 애니메이션"""
+        AnimationHelper.fadeSlideOut(self, "down", 30, 300, lambda: super().closeEvent(event))
+        event.ignore()  # 애니메이션 완료 후 닫기 위해
+
+# 로딩 진행 다이얼로그
+class LoadingProgressDialog(QWidget):
+    """이미지 로드 진행 다이얼로그"""
+    def __init__(self, parent=None, message="로딩 중..."):
+        super().__init__(parent)
+        self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        
+        # 레이아웃
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20, 20)
+        
+        # 배경 프레임
+        bgFrame = QFrame()
+        bgFrame.setStyleSheet(f"""
+            background-color: {IOSColors.with_opacity(IOSColors.BACKGROUND, 0.95)};
+            border-radius: 10px;
+        """)
+        
+        # 그림자 효과
+        AnimationHelper.addShadowEffect(bgFrame, QColor(0, 0, 0, 100), 20, 0, 5)
+        
+        contentLayout = QVBoxLayout(bgFrame)
+        contentLayout.setSpacing(15)
+        
+        # 메시지 라벨
+        self.messageLabel = QLabel(message)
+        self.messageLabel.setStyleSheet(f"""
+            color: {IOSColors.TEXT_PRIMARY};
+            font-size: 14px;
+            font-weight: 500;
+        """)
+        self.messageLabel.setAlignment(Qt.AlignCenter)
+        contentLayout.addWidget(self.messageLabel)
+        
+        # 진행 상태바
+        self.progressBar = QProgressBar()
+        self.progressBar.setRange(0, 0)  # 불확정 상태
+        self.progressBar.setTextVisible(False)
+        self.progressBar.setFixedHeight(6)
+        self.progressBar.setStyleSheet(f"""
+            QProgressBar {{
+                border: none;
+                border-radius: 3px;
+                background-color: {IOSColors.BACKGROUND_TERTIARY};
+            }}
+            QProgressBar::chunk {{
+                background-color: {IOSColors.PRIMARY};
+                border-radius: 3px;
+            }}
+        """)
+        contentLayout.addWidget(self.progressBar)
+        
+        layout.addWidget(bgFrame)
+        
+        # 적절한 크기 설정
+        self.setFixedSize(250, 100)
+        
+        # 중앙 정렬
+        if parent:
+            self.moveToCenter()
+    
+    def moveToCenter(self):
+        """부모 위젯 중앙에 배치"""
+        try:
+            if self.parent():
+                x = self.parent().x() + (self.parent().width() - self.width()) // 2
+                y = self.parent().y() + (self.parent().height() - self.height()) // 2
+                self.move(x, y)
+        except Exception as e:
+            print(f"로딩 다이얼로그 위치 설정 오류: {str(e)}")
+    
+    def setMessage(self, message):
+        """메시지 설정"""
+        self.messageLabel.setText(message)
+    
+    def setProgress(self, value):
+        """진행 상태 설정 (0-100)"""
+        if value >= 0:
+            self.progressBar.setRange(0, 100)
+            self.progressBar.setValue(value)
+        else:
+            # 불확정 상태
+            self.progressBar.setRange(0, 0)
+    
+    def showEvent(self, event):
+        """표시 이벤트 - 페이드인 애니메이션"""
+        super().showEvent(event)
+        AnimationHelper.fadeAnimation(self, 0, 1, 200)
+        self.moveToCenter()
+
+# 배경 제거 작업자 (스레드)
+class BackgroundRemoverWorker(QThread):
+    """배경 제거 작업자 (스레드)"""
+    progress = pyqtSignal(int)  # 진행 상태 신호
+    finished = pyqtSignal(str)  # 완료 신호, 결과 파일 경로 전달
+    error = pyqtSignal(str)     # 오류 신호
+    
+    def __init__(self, image_path, parent=None):
+        super().__init__(parent)
+        self.image_path = image_path
+        self.abort = False
+    
+    def run(self):
+        """작업 실행"""
+        try:
+            if not REMBG_AVAILABLE:
+                self.error.emit("rembg 라이브러리가 설치되어 있지 않습니다.")
+                return
+                
+            # 진행률 업데이트 - 시작
+            self.progress.emit(10)
+            
+            # 이미지 로드
+            if REMBG_AVAILABLE:
+                input_image = Image.open(self.image_path)
+                
+                # 진행률 업데이트
+                self.progress.emit(30)
+                
+                # 배경 제거
+                output_image = remove(input_image)
+                
+                # 진행률 업데이트
+                self.progress.emit(80)
+                
+                # 파일 경로 구성
+                filename, ext = os.path.splitext(self.image_path)
+                output_path = f"{filename}_no_bg.png"
+                
+                # 결과 저장
+                output_image.save(output_path, 'PNG')
+                
+                # 진행률 업데이트 - 완료
+                self.progress.emit(100)
+                
+                # 완료 신호 발생
+                self.finished.emit(output_path)
+            else:
+                self.error.emit("rembg 라이브러리가 설치되어 있지 않습니다.")
+            
+        except Exception as e:
+            self.error.emit(str(e))
+
+# 배경 제거 확인 다이얼로그
+class BackgroundRemovalDialog(QDialog):
+    """배경 제거 확인 다이얼로그"""
+    def __init__(self, parent=None, image_path=None):
+        super().__init__(parent, Qt.FramelessWindowHint)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setModal(True)
+        
+        self.image_path = image_path
+        self.result_path = None
+        
+        # 레이아웃
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        
+        # 배경 프레임
+        bgFrame = QFrame()
+        bgFrame.setStyleSheet(f"""
+            background-color: {IOSColors.with_opacity(IOSColors.BACKGROUND, 0.95)};
+            border-radius: 15px;
+        """)
+        
+        # 그림자 효과
+        AnimationHelper.addShadowEffect(bgFrame, QColor(0, 0, 0, 80), 20, 0, 10)
+        
+        # 콘텐츠 레이아웃
+        contentLayout = QVBoxLayout(bgFrame)
+        contentLayout.setContentsMargins(25, 25, 25, 25)
+        contentLayout.setSpacing(20)
+        
+        # 다이얼로그 제목
+        titleLabel = QLabel("배경 제거 (Beta)")
+        titleLabel.setStyleSheet(f"""
+            color: {IOSColors.TEXT_PRIMARY};
+            font-size: 22px;
+            font-weight: bold;
+        """)
+        titleLabel.setAlignment(Qt.AlignCenter)
+        contentLayout.addWidget(titleLabel)
+        
+        # 다이얼로그 내용
+        messageLabel = QLabel("PNG가 아닌 이미지 파일은 투명 배경이 없을 수 있습니다.\n자동으로 이미지 배경을 제거하시겠습니까?")
+        messageLabel.setStyleSheet(f"""
+            color: {IOSColors.TEXT_SECONDARY};
+            font-size: 16px;
+        """)
+        messageLabel.setAlignment(Qt.AlignCenter)
+        contentLayout.addWidget(messageLabel)
+        
+        # 버튼 레이아웃
+        buttonLayout = QHBoxLayout()
+        buttonLayout.setSpacing(15)
+        
+        # 취소 버튼
+        self.cancelButton = IOSButton("원본 사용", primary=false)
+        self.cancelButton.clicked.connect(self.reject)
+        buttonLayout.addWidget(self.cancelButton)
+        
+        # 확인 버튼
+        self.confirmButton = IOSButton("배경 제거", primary=True)
+        self.confirmButton.clicked.connect(self.startBackgroundRemoval)
+        buttonLayout.addWidget(self.confirmButton)
+        
+        contentLayout.addLayout(buttonLayout)
+        
+        # 진행 상태 표시
+        self.progressBar = QProgressBar()
+        self.progressBar.setRange(0, 100)
+        self.progressBar.setValue(0)
+        self.progressBar.setVisible(False)
+        self.progressBar.setStyleSheet(f"""
+            QProgressBar {{
+                border: none;
+                border-radius: 5px;
+                height: 8px;
+                background-color: {IOSColors.BACKGROUND_TERTIARY};
+                text-align: center;
+            }}
+            QProgressBar::chunk {{
+                background-color: {IOSColors.PRIMARY};
+                border-radius: 5px;
+            }}
+        """)
+        contentLayout.addWidget(self.progressBar)
+        
+        # 상태 라벨
+        self.statusLabel = QLabel("")
+        self.statusLabel.setStyleSheet(f"""
+            color: {IOSColors.TEXT_SECONDARY};
+            font-size: 14px;
+        """)
+        self.statusLabel.setAlignment(Qt.AlignCenter)
+        self.statusLabel.setVisible(False)
+        contentLayout.addWidget(self.statusLabel)
+        
+        layout.addWidget(bgFrame)
+        
+        # 적절한 크기 설정
+        self.setMinimumWidth(400)
+        self.adjustSize()
+    
+    def startBackgroundRemoval(self):
+        """배경 제거 작업 시작"""
+        try:
+            self.progressBar.setVisible(True)
+            self.statusLabel.setVisible(True)
+            self.statusLabel.setText("배경 제거 작업 준비 중...")
+            
+            # 버튼 비활성화
+            self.cancelButton.setEnabled(False)
+            self.confirmButton.setEnabled(False)
+            
+            # QThread 상속받은 작업자 사용
+            self.worker = BackgroundRemoverWorker(self.image_path, self)
+            
+            # 시그널 연결
+            self.worker.progress.connect(self.updateProgress)
+            self.worker.finished.connect(self.onRemovalFinished)
+            self.worker.error.connect(self.onRemovalError)
+            
+            # 스레드 시작
+            self.worker.start()
+        except Exception as e:
+            print(f"배경 제거 시작 오류: {str(e)}")
+            self.statusLabel.setText(f"오류: {str(e)}")
+            self.statusLabel.setVisible(True)
+            self.cancelButton.setEnabled(True)
+    
+    def updateProgress(self, value):
+        """진행 상태 업데이트"""
+        self.progressBar.setValue(value)
+        
+        # 상태 메시지 업데이트
+        if value < 20:
+            self.statusLabel.setText("이미지 로드 중...")
+        elif value < 60:
+            self.statusLabel.setText("배경 제거 작업 중...")
+        else:
+            self.statusLabel.setText("결과 저장 중...")
+    
+    def onRemovalFinished(self, output_path):
+        """배경 제거 완료 처리"""
+        self.result_path = output_path
+        self.statusLabel.setText("배경 제거 완료!")
+        self.accept()
+    
+    def onRemovalError(self, error_message):
+        """배경 제거 오류 처리"""
+        self.statusLabel.setText(f"오류: {error_message}")
+        self.progressBar.setStyleSheet(f"""
+            QProgressBar {{
+                border: none;
+                border-radius: 5px;
+                background-color: {IOSColors.BACKGROUND_TERTIARY};
+            }}
+            QProgressBar::chunk {{
+                background-color: {IOSColors.RED};
+                border-radius: 5px;
+            }}
+        """)
+        
+        # 버튼 재활성화
+        self.cancelButton.setEnabled(True)
+        self.cancelButton.setText("닫기")
+        self.confirmButton.setEnabled(False)
+    
+    def showEvent(self, event):
+        """다이얼로그 표시 이벤트"""
+        super().showEvent(event)
+        # 페이드인 애니메이션
+        AnimationHelper.fadeAnimation(self, 0, 1, 250)
+        
+        # 부모 위젯 중앙에 배치
+        if self.parent():
+            geo = self.geometry()
+            geo.moveCenter(self.parent().geometry().center())
+            self.setGeometry(geo)
+
+# 이벤트 필터 - 고정 모드에서 이미지 영역만 클릭 통과
+class ImageInteractionFilter(QObject):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.parent_widget = parent
+    
+    def eventFilter(self, obj, event):
+        try:
+            if hasattr(self.parent_widget, 'pinModeEnabled') and self.parent_widget.pinModeEnabled:
+                # 고정 모드가 활성화된 경우
+                if event.type() == QEvent.MouseButtonPress:
+                    # 클릭이 이미지 영역에 있는지 확인
+                    if hasattr(self.parent_widget, 'imageLabel') and self.parent_widget.imageLabel:
+                        image_rect = self.parent_widget.imageLabel.getScaledPixmapRect()
+                        image_pos = self.parent_widget.imageLabel.mapTo(self.parent_widget, image_rect.topLeft())
+                        image_area = QRect(
+                            image_pos.x(), 
+                            image_pos.y(), 
+                            image_rect.width(), 
+                            image_rect.height()
+                        )
+                        
+                        click_pos = event.pos()
+                        if not image_area.contains(click_pos):
+                            # 이미지 영역 외부 클릭은 통과시킴
+                            return True
+            
+            # 이벤트 처리 계속
+            return super().eventFilter(obj, event)
+        except Exception as e:
+            print(f"이벤트 필터 오류: {str(e)}")
+            # 오류 발생시 이벤트 계속 처리
+            return False
+
+# 이미지 뷰어 클래스
+class ImageViewer(QWidget):
+    """iOS 스타일 이미지 뷰어 클래스"""
+    def __init__(self, parent=None):
+        super().__init__(None)  # 독립 창으로 생성
+        self.parent_widget = parent
+        
+        # 창 설정
+        self.setWindowFlags(Qt.Window | Qt.FramelessWindowHint)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setMinimumSize(450, 350)  # 최소 크기 증가
+        
+        # 상태 변수
+        self.pinModeEnabled = False
+        self.zoomLevel = 100
+        self.dragging = False
+        self.oldPos = None
+        self.originalPixmap = None
+        self.currentFilePath = None
+        self.fileType = None
+        self.imageOffset = QPoint(0, 0)  # 이미지 위치 조정용
+        
+        # 드래그 관련 변수
+        self.pressing = False
+        self.mouseMovePos = None
+        
+        # 설정
+        self.settings = {
+            'auto_bg_removal': True,
+            'default_always_on_top': False,
+            'auto_close': 0
+        }
+        
+        # 애니메이션 객체들을 메모리에 유지
+        self.animations = []  # 애니메이션 객체 레퍼런스 보관
+        
+        # 네트워크 관리자
+        self.networkManager = QNetworkAccessManager(self)
+        self.networkManager.finished.connect(self.onNetworkRequestFinished)
+        
+        # 로딩 다이얼로그
+        self.loadingDialog = None
+        
+        # 고품질 폰트 설정
+        self.setupFonts()
+        
+        # UI 초기화
+        self.initUI()
+        
+        # 이벤트 필터 설정
+        self.image_filter = ImageInteractionFilter(self)
+        self.installEventFilter(self.image_filter)
+        
+        # 단축키 추가
+        self.setupShortcuts()
+        QTimer.singleShot(500, self.showShortcutHelp)
+    
+    def setupFonts(self):
+        """고품질 폰트 설정"""
+        # 시스템 폰트 가져오기 (SF Pro 또는 유사한 폰트)
+        system_font = QFont()
+        
+        # 운영체제별 최적의 폰트 선택
+        font_families = QFontDatabase().families()
+        
+        if "SF Pro Display" in font_families or "SF Pro Text" in font_families:
+            # macOS
+            system_font.setFamily("SF Pro Text")
+        elif "Segoe UI" in font_families:
+            # Windows
+            system_font.setFamily("Segoe UI")
+        elif "Roboto" in font_families:
+            # Android/Linux
+            system_font.setFamily("Roboto")
+        else:
+            # 기본값
+            system_font.setFamily("Arial")
+        
+        # 폰트 설정
+        system_font.setPixelSize(14)
+        system_font.setWeight(QFont.Medium)
+        self.setFont(system_font)
+    
+    def initUI(self):
+        """UI 초기화"""
+        # 메인 레이아웃
+        mainLayout = QVBoxLayout(self)
+        mainLayout.setContentsMargins(0, 0, 0, 0)
+        mainLayout.setSpacing(0)
+        
+        # 배경 투명 설정
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        
+        # 이미지 표시 영역 (투명 배경)
+        self.imageLabel = TransparentImageLabel()
+        self.imageLabel.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        mainLayout.addWidget(self.imageLabel)
+        
+        # 상태 메시지 라벨 (따로 추가, 이미지 위에 떠 있게)
+        self.statusLabel = StatusMessageLabel(self)
+        self.statusLabel.setFixedWidth(400)
+        
+        # 하단 컨트롤바 (가로로 배치)
+        self.controlBar = QFrame(self)
+        self.controlBar.setObjectName("controlBar")
+        self.controlBar.setStyleSheet(f"""
+            #controlBar {{
+                background-color: {IOSColors.with_opacity(IOSColors.BACKGROUND_SECONDARY, 0.85)};
+                border-radius: 15px;
+                margin: 10px;
+            }}
+        """)
+        
+        # 그림자 효과
+        self.controlBar_shadow = QGraphicsDropShadowEffect(self.controlBar)
+        self.controlBar_shadow.setBlurRadius(15)
+        self.controlBar_shadow.setColor(QColor(0, 0, 0, 80))
+        self.controlBar_shadow.setOffset(0, 3)
+        self.controlBar.setGraphicsEffect(self.controlBar_shadow)
+        
+        # 컨트롤 바 레이아웃 (가로로)
+        controlBarLayout = QHBoxLayout(self.controlBar)
+        controlBarLayout.setContentsMargins(15, 10, 15, 10)
+        controlBarLayout.setSpacing(15)
+        
+        # 닫기 버튼
+        self.closeButton = QToolButton()
+        self.closeButton.setCursor(Qt.PointingHandCursor)
+        self.closeButton.setStyleSheet(f"""
+            QToolButton {{
+                background-color: {IOSColors.RED};
+                border-radius: 10px;
+                min-width: 20px;
+                min-height: 20px;
+                max-width: 20px;
+                max-height: 20px;
+            }}
+            QToolButton:hover {{
+                background-color: #FF6961;
+            }}
+        """)
+        close_icon = SVGIcons.svg_to_pixmap(SVGIcons.get_close(), QSize(10, 10))
+        self.closeButton.setIcon(QIcon(close_icon))
+        self.closeButton.setIconSize(QSize(10, 10))
+        self.closeButton.clicked.connect(self.closeViewer)
+        controlBarLayout.addWidget(self.closeButton)
+        
+        # 타이틀 (드래그 영역으로 사용)
+        self.titleLabel = QLabel("이미지 뷰어")
+        self.titleLabel.setStyleSheet(f"""
+            color: {IOSColors.TEXT_PRIMARY};
+            font-size: 14px;
+            font-weight: 600;
+            padding: 0 10px;
+        """)
+        self.titleLabel.setAlignment(Qt.AlignCenter)
+        controlBarLayout.addWidget(self.titleLabel)
+        
+        # 확대/축소 버튼
+        zoomLayout = QHBoxLayout()
+        zoomLayout.setContentsMargins(0, 0, 0, 0)
+        zoomLayout.setSpacing(5)
+        
+        # 축소 버튼
+        self.zoomOutButton = QToolButton()
+        self.zoomOutButton.setCursor(Qt.PointingHandCursor)
+        zoom_out_icon = SVGIcons.svg_to_pixmap(SVGIcons.get_zoom_out(), QSize(16, 16))
+        self.zoomOutButton.setIcon(QIcon(zoom_out_icon))
+        self.zoomOutButton.setIconSize(QSize(16, 16))
+        self.zoomOutButton.setStyleSheet(f"""
+            QToolButton {{
+                background-color: transparent;
+                border-radius: 5px;
+                padding: 3px;
+            }}
+            QToolButton:hover {{
+                background-color: {IOSColors.with_opacity(IOSColors.BACKGROUND_TERTIARY, 0.7)};
+            }}
+        """)
+        self.zoomOutButton.clicked.connect(lambda: self.zoomImage(False))
+        zoomLayout.addWidget(self.zoomOutButton)
+        
+        # 확대 버튼
+        self.zoomInButton = QToolButton()
+        self.zoomInButton.setCursor(Qt.PointingHandCursor)
+        zoom_in_icon = SVGIcons.svg_to_pixmap(SVGIcons.get_zoom_in(), QSize(16, 16))
+        self.zoomInButton.setIcon(QIcon(zoom_in_icon))
+        self.zoomInButton.setIconSize(QSize(16, 16))
+        self.zoomInButton.setStyleSheet(f"""
+            QToolButton {{
+                background-color: transparent;
+                border-radius: 5px;
+                padding: 3px;
+            }}
+            QToolButton:hover {{
+                background-color: {IOSColors.with_opacity(IOSColors.BACKGROUND_TERTIARY, 0.7)};
+            }}
+        """)
+        self.zoomInButton.clicked.connect(lambda: self.zoomImage(True))
+        zoomLayout.addWidget(self.zoomInButton)
+        
+        # 확대/축소 레이블
+        self.zoomLabel = QLabel("100%")
+        self.zoomLabel.setStyleSheet(f"color: {IOSColors.TEXT_PRIMARY}; font-size: 12px;")
+        self.zoomLabel.setFixedWidth(40)
+        self.zoomLabel.setAlignment(Qt.AlignCenter)
+        zoomLayout.addWidget(self.zoomLabel)
+        
+        controlBarLayout.addLayout(zoomLayout)
+        
+        # 투명도 슬라이더
+        transparencyLayout = QHBoxLayout()
+        transparencyLayout.setContentsMargins(0, 0, 0, 0)
+        transparencyLayout.setSpacing(10)
+        
+        transparencyLabel = QLabel("투명도:")
+        transparencyLabel.setStyleSheet(f"""
+            color: {IOSColors.TEXT_PRIMARY}; 
+            font-size: 13px; 
+            margin-right: 5px;
+        """)
+        transparencyLayout.addWidget(transparencyLabel)
+        
+        self.transparencySlider = IOSSlider(Qt.Horizontal)
+        self.transparencySlider.setRange(10, 100)
+        self.transparencySlider.setValue(100)
+        self.transparencySlider.setMinimumWidth(150)  # 더 크게 설정
+        self.transparencySlider.valueChanged.connect(self.updateImageTransparency)
+        transparencyLayout.addWidget(self.transparencySlider)
+        
+        controlBarLayout.addLayout(transparencyLayout)
+        
+        # 고정 모드 체크박스
+        self.pinModeCheckBox = IOSCheckBox("고정 모드")
+        self.pinModeCheckBox.setStyleSheet("font-size: 13px;")
+        self.pinModeCheckBox.toggled.connect(self.togglePinMode)
+        controlBarLayout.addWidget(self.pinModeCheckBox)
+        
+        # 도구 버튼들
+        buttonsLayout = QHBoxLayout()
+        buttonsLayout.setContentsMargins(0, 0, 0, 0)
+        buttonsLayout.setSpacing(5)
+        
+        # 배경 제거 버튼
+        self.removeBackgroundButton = QToolButton()
+        self.removeBackgroundButton.setCursor(Qt.PointingHandCursor)
+        magic_wand_icon = SVGIcons.svg_to_pixmap(SVGIcons.get_magic_wand(), QSize(16, 16))
+        self.removeBackgroundButton.setIcon(QIcon(magic_wand_icon))
+        self.removeBackgroundButton.setIconSize(QSize(16, 16))
+        self.removeBackgroundButton.setToolTip("배경 제거 (R)")
+        self.removeBackgroundButton.setStyleSheet(f"""
+            QToolButton {{
+                background-color: transparent;
+                border-radius: 5px;
+                padding: 3px;
+            }}
+            QToolButton:hover {{
+                background-color: {IOSColors.with_opacity(IOSColors.BACKGROUND_TERTIARY, 0.7)};
+            }}
+        """)
+        self.removeBackgroundButton.clicked.connect(self.removeBackground)
+        buttonsLayout.addWidget(self.removeBackgroundButton)
+        
+        # 정보 버튼
+        self.infoButton = QToolButton()
+        self.infoButton.setCursor(Qt.PointingHandCursor)
+        info_icon = SVGIcons.svg_to_pixmap(SVGIcons.get_info(), QSize(16, 16))
+        self.infoButton.setIcon(QIcon(info_icon))
+        self.infoButton.setIconSize(QSize(16, 16))
+        self.infoButton.setToolTip("이미지 정보 (I)")
+        self.infoButton.setStyleSheet(f"""
+            QToolButton {{
+                background-color: transparent;
+                border-radius: 5px;
+                padding: 3px;
+            }}
+            QToolButton:hover {{
+                background-color: {IOSColors.with_opacity(IOSColors.BACKGROUND_TERTIARY, 0.7)};
+            }}
+        """)
+        self.infoButton.clicked.connect(self.showImageInfo)
+        buttonsLayout.addWidget(self.infoButton)
+        
+        # 도움말 버튼
+        self.helpButton = QToolButton()
+        self.helpButton.setCursor(Qt.PointingHandCursor)
+        help_icon = SVGIcons.svg_to_pixmap(SVGIcons.get_help(), QSize(16, 16))
+        self.helpButton.setIcon(QIcon(help_icon))
+        self.helpButton.setIconSize(QSize(16, 16))
+        self.helpButton.setToolTip("도움말 (H)")
+        self.helpButton.setStyleSheet(f"""
+            QToolButton {{
+                background-color: transparent;
+                border-radius: 5px;
+                padding: 3px;
+            }}
+            QToolButton:hover {{
+                background-color: {IOSColors.with_opacity(IOSColors.BACKGROUND_TERTIARY, 0.7)};
+            }}
+        """)
+        self.helpButton.clicked.connect(self.showHelp)
+        buttonsLayout.addWidget(self.helpButton)
+        
+        # 설정 버튼
+        self.settingsButton = QToolButton()
+        settings_icon = SVGIcons.svg_to_pixmap(SVGIcons.get_settings(), QSize(16, 16))
+        self.settingsButton.setIcon(QIcon(settings_icon))
+        self.settingsButton.setIconSize(QSize(16, 16))
+        self.settingsButton.setToolTip("설정 (S)")
+        self.settingsButton.setCursor(Qt.PointingHandCursor)
+        self.settingsButton.setStyleSheet(f"""
+            QToolButton {{
+                background-color: transparent;
+                border-radius: 5px;
+                padding: 3px;
+            }}
+            QToolButton:hover {{
+                background-color: {IOSColors.with_opacity(IOSColors.BACKGROUND_TERTIARY, 0.7)};
+            }}
+        """)
+        self.settingsButton.clicked.connect(self.showSettingsDialog)
+        buttonsLayout.addWidget(self.settingsButton)
+        
+        controlBarLayout.addLayout(buttonsLayout)
+        
+        # 컨트롤 바를 메인 레이아웃에 추가 (하단에 배치)
+        self.controlBar.setFixedHeight(50)  # 높이 고정
+        mainLayout.addWidget(self.controlBar)
+        
+        # 컨트롤 바 전체를 드래그 영역으로 설정 (마우스 이벤트)
+        self.controlBar.mousePressEvent = self.controlBarMousePressEvent
+        self.controlBar.mouseMoveEvent = self.controlBarMouseMoveEvent
+        self.controlBar.mouseReleaseEvent = self.controlBarMouseReleaseEvent
+        self.controlBar.setCursor(Qt.SizeAllCursor)
+        
+        # 리사이즈 핸들
+        self.resizeHandleBottomRight = ResizeHandle(self, "bottom-right")
+        self.resizeHandleBottomLeft = ResizeHandle(self, "bottom-left")
+        
+        # 리사이즈 핸들 연결
+        self.resizeHandleBottomRight.resizeSignal.connect(self.handleResize)
+        self.resizeHandleBottomLeft.resizeSignal.connect(self.handleResize)
+        
+        # 리사이즈 핸들 위치 설정
+        self.updateResizeHandles()
+    
+    def setupShortcuts(self):
+        """단축키 설정"""
+        # 확대/축소 단축키
+        self.zoomInShortcut = QKeySequence("Ctrl++")
+        self.zoomOutShortcut = QKeySequence("Ctrl+-")
+        
+        # ESC로 닫기
+        self.closeShortcut = QKeySequence("Esc")
+        
+        # 정보 표시 (I)
+        self.infoShortcut = QKeySequence("I")
+        
+        # 고정 모드 토글 (P)
+        self.pinModeShortcut = QKeySequence("P")
+        
+        # 배경 제거 (R)
+        self.removeBackgroundShortcut = QKeySequence("R")
+        
+        # 도움말 (H)
+        self.helpShortcut = QKeySequence("H")
+        
+        # 설정 (S)
+        self.settingsShortcut = QKeySequence("S")
+    
+    def keyPressEvent(self, event):
+        """키 입력 이벤트 처리"""
+        try:
+            # ESC로 닫기
+            if event.key() == Qt.Key_Escape:
+                self.closeViewer()
+                return
+            
+            # 정보 표시 (I)
+            elif event.key() == Qt.Key_I:
+                self.showImageInfo()
+                return
+                
+            # 고정 모드 토글 (P)
+            elif event.key() == Qt.Key_P:
+                self.pinModeCheckBox.setChecked(not self.pinModeCheckBox.isChecked())
+                return
+                
+            # 배경 제거 (R)
+            elif event.key() == Qt.Key_R:
+                self.removeBackground()
+                return
+                
+            # 도움말 (H)
+            elif event.key() == Qt.Key_H:
+                self.showHelp()
+                return
+                
+            # 설정 (S)
+            elif event.key() == Qt.Key_S:
+                self.showSettingsDialog()
+                return
+                
+            # 확대/축소 (+/-)
+            elif event.key() == Qt.Key_Plus:
+                self.zoomImage(True)
+                return
+                
+            elif event.key() == Qt.Key_Minus:
+                self.zoomImage(False)
+                return
+                
+            # 방향키로 이미지 이동
+            elif event.key() in [Qt.Key_Left, Qt.Key_Right, Qt.Key_Up, Qt.Key_Down]:
+                step = 10  # 이동 단위
+                
+                if event.key() == Qt.Key_Left:
+                    self.moveImage(QPoint(-step, 0))
+                elif event.key() == Qt.Key_Right:
+                    self.moveImage(QPoint(step, 0))
+                elif event.key() == Qt.Key_Up:
+                    self.moveImage(QPoint(0, -step))
+                elif event.key() == Qt.Key_Down:
+                    self.moveImage(QPoint(0, step))
+                return
+            
+            # 기본 처리
+            super().keyPressEvent(event)
+        except Exception as e:
+            print(f"키 입력 이벤트 처리 오류: {str(e)}")
+            super().keyPressEvent(event)
+    
+    def wheelEvent(self, event):
+        """마우스 휠 이벤트 - 확대/축소"""
+        try:
+            # Ctrl 키가 눌린 경우에만 확대/축소 처리
+            if event.modifiers() & Qt.ControlModifier:
+                delta = event.angleDelta().y()
+                
+                if delta > 0:
+                    # 위로 스크롤: 확대
+                    self.zoomImage(True)
+                else:
+                    # 아래로 스크롤: 축소
+                    self.zoomImage(False)
+                
+                event.accept()
+            else:
+                # 기본 동작 (스크롤)
+                super().wheelEvent(event)
+        except Exception as e:
+            print(f"휠 이벤트 처리 오류: {str(e)}")
+            super().wheelEvent(event)
+    
+    def zoomImage(self, zoom_in=True):
+        """이미지 확대/축소"""
+        try:
+            if zoom_in:
+                # 확대 (10% 증가)
+                new_zoom = min(self.zoomLevel + 10, 500)  # 최대 500%
+            else:
+                # 축소 (10% 감소)
+                new_zoom = max(self.zoomLevel - 10, 10)  # 최소 10%
+            
+            # 변화가 있을 때만 업데이트
+            if new_zoom != self.zoomLevel:
+                self.zoomLevel = new_zoom
+                self.zoomLabel.setText(f"{self.zoomLevel}%")
+                self.updateImageDisplay()
+        except Exception as e:
+            print(f"확대/축소 오류: {str(e)}")
+    
+    def moveImage(self, delta):
+        """이미지 위치 이동"""
+        try:
+            self.imageOffset += delta
+            self.updateImageDisplay()
+        except Exception as e:
+            print(f"이미지 이동 오류: {str(e)}")
+    
+    def handleImageDrag(self, delta):
+        """이미지 드래그 처리"""
+        try:
+            self.moveImage(delta)
+        except Exception as e:
+            print(f"이미지 드래그 오류: {str(e)}")
+    
+    def showHelp(self):
+        """도움말 다이얼로그 표시"""
+        try:
+            helpDialog = HelpDialog(self)
+            helpDialog.exec_()
+        except Exception as e:
+            print(f"도움말 표시 오류: {str(e)}")
+            self.showStatusMessage(f"도움말 표시 오류: {str(e)}")
+    
+    def showShortcutHelp(self):
+        """단축키 도움말 표시"""
+        try:
+            self.showStatusMessage("단축키: ESC(닫기), P(고정 모드), +/-(확대/축소), I(정보), H(도움말), R(배경 제거), S(설정)")
+        except Exception as e:
+            print(f"단축키 도움말 표시 오류: {str(e)}")
+    
+    # 컨트롤바 드래그 이벤트 처리 함수
+    def controlBarMousePressEvent(self, event):
+        """컨트롤바 마우스 클릭 이벤트"""
+        if event.button() == Qt.LeftButton:
+            self.pressing = True
+            self.mouseMovePos = event.globalPos()
+    
+    def controlBarMouseMoveEvent(self, event):
+        """컨트롤바 마우스 이동 이벤트"""
+        if self.pressing and self.mouseMovePos:
+            delta = event.globalPos() - self.mouseMovePos
+            self.mouseMovePos = event.globalPos()
+            
+            # 창 이동
+            self.move(self.pos() + delta)
+    
+    def controlBarMouseReleaseEvent(self, event):
+        """컨트롤바 마우스 릴리즈 이벤트"""
+        if event.button() == Qt.LeftButton:
+            self.pressing = False
+            self.mouseMovePos = None
+    
+    def resizeEvent(self, event):
+        """창 크기 변경 이벤트"""
+        super().resizeEvent(event)
+        self.updateResizeHandles()
+        self.updateImageDisplay()
+    
+    def updateResizeHandles(self):
+        """리사이즈 핸들 위치 업데이트"""
+        try:
+            # 우측 하단 핸들
+            if hasattr(self, 'resizeHandleBottomRight'):
+                self.resizeHandleBottomRight.move(
+                    self.width() - self.resizeHandleBottomRight.width(),
+                    self.height() - self.resizeHandleBottomRight.height()
+                )
+            
+            # 좌측 하단 핸들
+            if hasattr(self, 'resizeHandleBottomLeft'):
+                self.resizeHandleBottomLeft.move(
+                    0,
+                    self.height() - self.resizeHandleBottomLeft.height()
+                )
+        except Exception as e:
+            print(f"리사이즈 핸들 업데이트 오류: {str(e)}")
+    
+    def handleResize(self, delta):
+        """리사이즈 핸들을 통한 크기 조절 처리"""
+        try:
+            # 현재 위치 및 크기
+            current_geometry = self.geometry()
+            
+            # 새 크기 계산 (최소 크기 제한)
+            new_width = max(self.minimumWidth(), current_geometry.width() + delta.x())
+            new_height = max(self.minimumHeight(), current_geometry.height() + delta.y())
+            
+            # 크기 설정
+            self.resize(new_width, new_height)
+        except Exception as e:
+            print(f"리사이즈 처리 오류: {str(e)}")
+    
+    def togglePinMode(self, enabled):
+        """고정 모드 토글"""
+        try:
+            self.pinModeEnabled = enabled
+            
+            if enabled:
+                # 고정 모드 활성화
+                self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint | Qt.WindowTransparentForInput)
+                self.showStatusMessage("고정 모드 활성화: 이미지 영역 외 클릭은 통과합니다")
+            else:
+                # 고정 모드 비활성화
+                self.setWindowFlags(self.windowFlags() & ~Qt.WindowStaysOnTopHint & ~Qt.WindowTransparentForInput)
+                self.showStatusMessage("고정 모드 비활성화")
+            
+            # 창 다시 표시 (윈도우 플래그 변경 적용)
+            visible = self.isVisible()
+            self.show()
+            
+            # 활성화 상태 및 포커스 복구
+            if visible:
+                self.activateWindow()
+                self.raise_()
+                QTimer.singleShot(100, lambda: self.activateWindow())
+        except Exception as e:
+            print(f"고정 모드 토글 오류: {str(e)}")
+            
+    def showSettingsDialog(self):
+        """설정 다이얼로그 표시"""
+        try:
+            # 설정 다이얼로그 생성
+            dialog = SettingsDialog(self)
+            
+            # 현재 설정 로드
+            dialog.loadSettings(self.settings)
+            
+            if dialog.exec_() == QDialog.Accepted:
+                # 설정 변경사항 저장
+                self.settings = dialog.getSettings()
+                self.showStatusMessage("설정이 저장되었습니다")
+        except Exception as e:
+            print(f"설정 다이얼로그 표시 오류: {str(e)}")
+            self.showStatusMessage(f"설정 표시 오류: {str(e)}")
+    
+    def loadImageFromUrl(self, url):
+        """URL에서 이미지 로드"""
+        try:
+            # URL 유효성 검사
+            if not url or not (url.startswith('http://') or url.startswith('https://')):
+                QMessageBox.warning(self, "URL 오류", "유효한 URL을 입력하세요. (http:// 또는 https://로 시작해야 합니다)")
+                return False
+                
+            # 로딩 다이얼로그 표시
+            self.loadingDialog = LoadingProgressDialog(self, "URL에서 이미지 로드 중...")
+            self.loadingDialog.show()
+            
+            # UI 업데이트를 위한 이벤트 처리
+            QApplication.processEvents()
+            
+            # 요청 생성
+            request = QNetworkRequest(QUrl(url))
+            request.setAttribute(QNetworkRequest.RedirectPolicyAttribute, QNetworkRequest.NoLessSafeRedirectPolicy)
+            request.setHeader(QNetworkRequest.UserAgentHeader, "Mozilla/5.0 Image Viewer")
+            
+            # 네트워크 요청 시작
+            self.networkManager.get(request)
+            
+            self.currentFilePath = None  # URL 로드이므로 파일 경로 없음
+            return True
+        except Exception as e:
+            QMessageBox.critical(self, "오류", f"URL 요청 시작 실패: {str(e)}")
+            if self.loadingDialog:
+                self.loadingDialog.close()
+                self.loadingDialog = None
+            return False
+    
+    def onNetworkRequestFinished(self, reply):
+        """네트워크 요청 완료 처리"""
+        try:
+            # 로딩 다이얼로그 닫기
+            if self.loadingDialog:
+                self.loadingDialog.close()
+                self.loadingDialog = None
+            
+            if reply.error() != QNetworkReply.NoError:
+                QMessageBox.critical(self, "오류", f"네트워크 오류: {reply.errorString()}")
+                return
+            
+            # 이미지 데이터 읽기
+            image_data = reply.readAll()
+            
+            # 데이터로부터 픽스맵 생성
+            pixmap = QPixmap()
+            if pixmap.loadFromData(image_data):
+                # 이미지 확장자 추정
+                if image_data.startsWith(b'\x89PNG'):
+                    self.fileType = "PNG"
+                elif image_data.startsWith(b'\xff\xd8'):
+                    self.fileType = "JPEG"
+                elif image_data.startsWith(b'GIF8'):
+                    self.fileType = "GIF"
+                elif image_data.startsWith(b'BM'):
+                    self.fileType = "BMP"
+                else:
+                    self.fileType = "Unknown"
+                
+                self.displayImage(pixmap)
+            else:
+                QMessageBox.critical(self, "오류", "이미지 데이터 로드 실패")
+        except Exception as e:
+            QMessageBox.critical(self, "오류", f"이미지 로드 중 오류 발생: {str(e)}")
+        finally:
+            reply.deleteLater()
+    
+    def loadImageFromFile(self, file_path):
+        """로컬 파일에서 이미지 로드"""
+        try:
+            # 파일 확장자 확인
+            ext = os.path.splitext(file_path)[1].lower()
+            supported_formats = ['.png', '.jpg', '.jpeg', '.bmp', '.gif']
+            
+            if ext not in supported_formats:
+                QMessageBox.warning(self, "지원되지 않는 형식", 
+                                  "지원되는 이미지 형식: PNG, JPG, JPEG, BMP, GIF", 
+                                  QMessageBox.Ok)
+                return False
+            
+            # 파일 존재 여부 확인
+            if not os.path.exists(file_path):
+                QMessageBox.warning(self, "파일 없음",
+                                  "선택한 파일이 존재하지 않습니다.",
+                                  QMessageBox.Ok)
+                return False
+            
+            # 파일 형식 저장
+            self.fileType = ext[1:].upper()
+            
+            # 로딩 다이얼로그 표시
+            self.loadingDialog = LoadingProgressDialog(self, "파일에서 이미지 로드 중...")
+            self.loadingDialog.show()
+            
+            # UI 업데이트를 위한 이벤트 처리
+            QApplication.processEvents()
+            
+            # 이미지 로드 (QTimer로 지연시켜 로딩 다이얼로그가 표시되도록)
+            QTimer.singleShot(100, lambda: self.completeFileLoading(file_path))
+            
+            self.currentFilePath = file_path
+            return True
+            
+        except Exception as e:
+            if self.loadingDialog:
+                self.loadingDialog.close()
+                self.loadingDialog = None
+            QMessageBox.critical(self, "오류", f"이미지 로드 오류: {str(e)}")
+            return False
+    
+    def completeFileLoading(self, file_path):
+        """파일 로딩 완료 처리"""
+        try:
+            pixmap = QPixmap(file_path)
+            if pixmap.isNull():
+                QMessageBox.critical(self, "오류", "이미지 파일 로드 실패")
+            else:
+                # PNG가 아닌 파일이고 투명 배경이 없는 경우 배경 제거 묻기
+                image = pixmap.toImage()
+                has_alpha = image.hasAlphaChannel()
+                non_png_check = self.fileType != "PNG" and not has_alpha and self.settings.get('auto_bg_removal', True) and REMBG_AVAILABLE
+                
+                if non_png_check:
+                    # 먼저 이미지 표시
+                    self.displayImage(pixmap)
+                    
+                    # 로딩 다이얼로그 닫기
+                    if self.loadingDialog:
+                        self.loadingDialog.close()
+                        self.loadingDialog = None
+                    
+                    # 배경 제거 다이얼로그 표시
+                    self.showBackgroundRemovalDialog(file_path)
+                else:
+                    # 투명 배경 있는 경우 바로 표시
+                    self.displayImage(pixmap)
+                    
+                    # 로딩 다이얼로그 닫기
+                    if self.loadingDialog:
+                        self.loadingDialog.close()
+                        self.loadingDialog = None
+        except Exception as e:
+            QMessageBox.critical(self, "오류", f"이미지 로드 오류: {str(e)}")
+            # 로딩 다이얼로그 닫기
+            if self.loadingDialog:
+                self.loadingDialog.close()
+                self.loadingDialog = None
+    
+    def showBackgroundRemovalDialog(self, file_path):
+        """배경 제거 다이얼로그 표시"""
+        try:
+            dialog = BackgroundRemovalDialog(self, file_path)
+            
+            if dialog.exec_() == QDialog.Accepted and dialog.result_path:
+                # 배경이 제거된 이미지로 교체
+                self.loadImageFromFile(dialog.result_path)
+        except Exception as e:
+            print(f"배경 제거 다이얼로그 오류: {str(e)}")
+            self.showStatusMessage(f"배경 제거 다이얼로그 오류: {str(e)}")
+    
+    def removeBackground(self):
+        """현재 이미지의 배경 제거"""
+        try:
+            if not self.currentFilePath or not REMBG_AVAILABLE:
+                self.showStatusMessage("배경 제거할 이미지가 없거나 기능이 비활성화됨")
+                return
+            
+            # 이미지가 이미 투명 배경을 가지고 있는지 확인
+            image = self.originalPixmap.toImage() if self.originalPixmap else None
+            if image and image.hasAlphaChannel():
+                self.showStatusMessage("이미지에 이미 투명 배경이 있습니다")
+                return
+            
+            # 배경 제거 다이얼로그 표시
+            self.showBackgroundRemovalDialog(self.currentFilePath)
+        except Exception as e:
+            print(f"배경 제거 오류: {str(e)}")
+            self.showStatusMessage(f"배경 제거 오류: {str(e)}")
+    
+    def displayImage(self, pixmap):
+        """이미지 표시"""
+        try:
+            # 원본 픽스맵 저장
+            self.originalPixmap = pixmap
+            
+            # 이미지 오프셋 초기화
+            self.imageOffset = QPoint(0, 0)
+            
+            # 화면 크기 확인
+            screen = QApplication.primaryScreen().availableGeometry()
+            
+            # 초기 창 크기 계산 (원본 이미지 크기 기준, 최소/최대 크기 적용)
+            width = min(max(pixmap.width() + 40, 450), screen.width() * 0.8)
+            height = min(max(pixmap.height() + 80, 350), screen.height() * 0.8)  # 하단 컨트롤바 고려
+            
+            # 창 크기 설정
+            self.resize(int(width), int(height))
+            
+            # 위치 설정 - 화면 중앙
+            self.move(
+                screen.center().x() - int(width / 2),
+                screen.center().y() - int(height / 2)
+            )
+            
+            # 이미지 업데이트
+            self.updateImageDisplay()
+            
+            # 설정에서 항상 위에 표시 기본값 적용
+            if self.settings.get('default_always_on_top', False):
+                if hasattr(self, 'pinModeCheckBox'):
+                    self.pinModeCheckBox.setChecked(True)
+            
+            # 창 표시 - 애니메이션 효과 적용
+            self.setupOpenAnimation()
+            
+            # 상태 메시지 표시
+            imageSize = f"{pixmap.width()} x {pixmap.height()} 픽셀"
+            self.showStatusMessage(f"이미지 로드 완료: {imageSize}")
+            
+            # 윈도우 타이틀 업데이트
+            if self.currentFilePath:
+                try:
+                    filename = os.path.basename(self.currentFilePath)
+                    if hasattr(self, 'titleLabel'):
+                        self.titleLabel.setText(f"이미지 뷰어 - {filename}")
+                except:
+                    if hasattr(self, 'titleLabel'):
+                        self.titleLabel.setText("이미지 뷰어")
+            else:
+                if hasattr(self, 'titleLabel'):
+                    self.titleLabel.setText("이미지 뷰어")
+                
+        except Exception as e:
+            print(f"이미지 표시 오류: {str(e)}")
+            QMessageBox.critical(self, "오류", f"이미지 표시 중 오류 발생: {str(e)}")
+    
+    def setupOpenAnimation(self):
+        """창 열림 애니메이션 설정"""
+        try:
+            # 초기 상태 설정 (투명)
+            self.setWindowOpacity(0.0)
+            self.show()
+            
+            # 중앙 약간 아래에서 시작
+            current_pos = self.pos()
+            start_pos = QPoint(current_pos.x(), current_pos.y() + 50)
+            self.move(start_pos)
+            
+            # 애니메이션 객체를 클래스 멤버로 저장 (가비지 컬렉션 방지)
+            self.pos_anim = QPropertyAnimation(self, b"pos")
+            self.pos_anim.setDuration(350)
+            self.pos_anim.setStartValue(start_pos)
+            self.pos_anim.setEndValue(current_pos)
+            self.pos_anim.setEasingCurve(QEasingCurve.OutCubic)
+            
+            self.opacity_anim = QPropertyAnimation(self, b"windowOpacity")
+            self.opacity_anim.setDuration(350)
+            self.opacity_anim.setStartValue(0.0)
+            self.opacity_anim.setEndValue(1.0)
+            self.opacity_anim.setEasingCurve(QEasingCurve.OutCubic)
+            
+            # 애니메이션 그룹
+            self.anim_group = QParallelAnimationGroup()
+            self.anim_group.addAnimation(self.pos_anim)
+            self.anim_group.addAnimation(self.opacity_anim)
+            
+            # 애니메이션 완료 후 포커스 설정
+            self.anim_group.finished.connect(self.onAnimationFinished)
+            
+            # 애니메이션 시작
+            self.anim_group.start()
+        except Exception as e:
+            print(f"애니메이션 설정 오류: {str(e)}")
+            self.setWindowOpacity(1.0)
+            self.show()
+            self.activateWindow()
+        
+    def onAnimationFinished(self):
+        """애니메이션 완료 후 처리"""
+        try:
+            self.activateWindow()  # 창 활성화
+            self.raise_()  # 최상위로 가져오기
+            self.setFocus()  # 포커스 설정
+            
+            # 필요한 경우 프로세싱 시간 확보 - 업데이트 강제 실행
+            QCoreApplication.processEvents()
+        except Exception as e:
+            print(f"애니메이션 완료 처리 오류: {str(e)}")
+    
+    def updateImageDisplay(self):
+        """현재 창 크기에 맞게 이미지 업데이트"""
+        try:
+            if self.originalPixmap and not self.originalPixmap.isNull():
+                # 제어 바 높이를 고려한 사용 가능한 공간 계산
+                contentRect = self.rect()
+                controlHeight = self.controlBar.height() if hasattr(self, 'controlBar') else 0
+                contentRect.adjust(10, 10, -10, -controlHeight - 10)
+                
+                # 줌 레벨 적용
+                zoomFactor = self.zoomLevel / 100.0
+                
+                # 원본 이미지 크기
+                origWidth = self.originalPixmap.width()
+                origHeight = self.originalPixmap.height()
+                
+                # 줌이 적용된 목표 크기
+                targetWidth = max(1, int(origWidth * zoomFactor))  # 0 크기 방지
+                targetHeight = max(1, int(origHeight * zoomFactor))  # 0 크기 방지
+                
+                # 이미지 크기 조정 (비율 유지, 고품질)
+                scaledPixmap = self.originalPixmap.scaled(
+                    targetWidth, 
+                    targetHeight,
+                    Qt.KeepAspectRatio,
+                    Qt.SmoothTransformation
+                )
+                
+                if hasattr(self, 'imageLabel') and self.imageLabel:
+                    self.imageLabel.setPixmap(scaledPixmap)
+                    
+                    # 이미지 위치 조정
+                    if self.imageOffset != QPoint(0, 0):
+                        self.imageLabel.move(self.imageOffset)
+                    
+                    # 상태 레이블 위치 업데이트
+                    if hasattr(self, 'statusLabel') and self.statusLabel.isVisible():
+                        self.statusLabel.move(
+                            (self.width() - self.statusLabel.width()) // 2,
+                            (self.height() - self.statusLabel.height()) // 2
+                        )
+        except Exception as e:
+            print(f"이미지 업데이트 오류: {str(e)}")
+    
+    def updateImageTransparency(self, value):
+        """이미지 투명도 업데이트"""
+        try:
+            opacity = value / 100.0
+            if hasattr(self, 'imageLabel') and self.imageLabel:
+                self.imageLabel.setImageOpacity(opacity)
+        except Exception as e:
+            print(f"투명도 업데이트 오류: {str(e)}")
+    
+    def showStatusMessage(self, message, timeout=3000):
+        """상태 메시지 표시"""
+        try:
+            if hasattr(self, 'statusLabel'):
+                # 메시지에 여러 줄이 있는 경우 처리
+                message_lines = message.split('\n')
+                if len(message_lines) > 5:  # 너무 긴 메시지는 줄임
+                    message = '\n'.join(message_lines[:5]) + "\n..."
+                
+                # StatusMessageLabel 클래스 대응
+                if hasattr(self.statusLabel, 'showMessage'):
+                    self.statusLabel.showMessage(message, timeout)
+                elif hasattr(self.statusLabel, 'textLabel'):
+                    # 새 구조 대응
+                    self.statusLabel.textLabel.setText(message)
+                    self.statusLabel.adjustSize()  # 내용에 맞게 크기 조정
+                    
+                    # 크기가 최대값을 초과하는 경우 조정
+                    if self.statusLabel.width() > self.width() * 0.8:
+                        self.statusLabel.setFixedWidth(int(self.width() * 0.8))
+                    
+                    # 위치 설정 (화면 중앙)
+                    self.statusLabel.move(
+                        (self.width() - self.statusLabel.width()) // 2,
+                        (self.height() - self.statusLabel.height()) // 2
+                    )
+                    
+                    # 표시
+                    self.statusLabel.setVisible(True)
+                    
+                    # 타이머로 숨기기
+                    QTimer.singleShot(timeout, lambda: self.statusLabel.setVisible(False))
+        except Exception as e:
+            print(f"상태 메시지 표시 오류: {str(e)}")
+    
+    def closeViewer(self):
+        """뷰어 닫기"""
+        try:
+            # 닫기 애니메이션
+            current_pos = self.pos()
+            end_pos = QPoint(current_pos.x(), current_pos.y() + 50)
+            
+            # 애니메이션 객체를 클래스 멤버로 저장
+            self.viewer_close_pos_anim = QPropertyAnimation(self, b"pos")
+            self.viewer_close_pos_anim.setDuration(300)
+            self.viewer_close_pos_anim.setStartValue(current_pos)
+            self.viewer_close_pos_anim.setEndValue(end_pos)
+            self.viewer_close_pos_anim.setEasingCurve(QEasingCurve.OutCubic)
+            
+            self.viewer_close_opacity_anim = QPropertyAnimation(self, b"windowOpacity")
+            self.viewer_close_opacity_anim.setDuration(300)
+            self.viewer_close_opacity_anim.setStartValue(1.0)
+            self.viewer_close_opacity_anim.setEndValue(0.0)
+            self.viewer_close_opacity_anim.setEasingCurve(QEasingCurve.OutCubic)
+            
+            # 애니메이션 그룹
+            self.viewer_close_anim_group = QParallelAnimationGroup()
+            self.viewer_close_anim_group.addAnimation(self.viewer_close_pos_anim)
+            self.viewer_close_anim_group.addAnimation(self.viewer_close_opacity_anim)
+            
+            # 애니메이션 완료 후 닫기
+            self.viewer_close_anim_group.finished.connect(self.close)
+            
+            # 애니메이션 시작
+            self.viewer_close_anim_group.start()
+        except Exception as e:
+            print(f"뷰어 닫기 오류: {str(e)}")
+            self.close()  # 애니메이션 실패시 바로 닫기
+    
+    def closeEvent(self, event):
+        """닫기 이벤트"""
+        try:
+            # 설정에 따라 자동 종료 또는 선택 화면으로 돌아가기
+            if self.parent_widget and self.settings.get('auto_close', 0) == 0:
+                self.parent_widget.show()
+                self.parent_widget.activateWindow()
+                self.parent_widget.raise_()
+            else:
+                # 프로그램 완전 종료 설정인 경우
+                QApplication.quit()
+            
+            event.accept()
+        except Exception as e:
+            print(f"종료 이벤트 처리 오류: {str(e)}")
+            event.accept()
+    
+    def showImageInfo(self):
+        """이미지 정보 다이얼로그 표시"""
+        try:
+            if not self.originalPixmap or self.originalPixmap.isNull():
+                self.showStatusMessage("표시할 이미지 정보가 없습니다")
+                return
+            
+            # 이미지 정보 수집
+            image_info = {}
+            
+            # 기본 정보
+            image_info['width'] = self.originalPixmap.width()
+            image_info['height'] = self.originalPixmap.height()
+            
+            # 파일 형식
+            image_info['file_type'] = self.fileType if self.fileType else "Unknown"
+            
+            # 파일 정보 (로컬 파일인 경우)
+            if self.currentFilePath:
+                image_info['file_path'] = self.currentFilePath
+                
+                # 파일 크기
+                try:
+                    size_bytes = os.path.getsize(self.currentFilePath)
+                    # 적절한 단위로 변환
+                    if size_bytes < 1024:
+                        size_str = f"{size_bytes} 바이트"
+                    elif size_bytes < 1024 * 1024:
+                        size_str = f"{size_bytes / 1024:.1f} KB"
+                    else:
+                        size_str = f"{size_bytes / (1024 * 1024):.1f} MB"
+                    image_info['file_size'] = size_str
+                except:
+                    image_info['file_size'] = "알 수 없음"
+            else:
+                image_info['file_path'] = "URL에서 로드됨"
+            
+            # 이미지 포맷 및 투명도
+            image = self.originalPixmap.toImage()
+            image_info['format'] = f"{image.format()} ({image.depth()}비트)"
+            image_info['has_alpha'] = image.hasAlphaChannel()
+            
+            # 다이얼로그 표시
+            info_dialog = ImageInfoDialog(self, image_info)
+            info_dialog.removeBackgroundClicked.connect(self.removeBackground)
+            info_dialog.show()
+        except Exception as e:
+            print(f"이미지 정보 표시 오류: {str(e)}")
+            self.showStatusMessage(f"이미지 정보 표시 오류: {str(e)}")
+
+# 이미지 선택 앱 클래스
+class ImageSelectorApp(QWidget):
+    """이미지 선택 애플리케이션"""
+    def __init__(self):
+        super().__init__()
+        # 뷰어 인스턴스 생성
+        self.viewer = None
+        self.settingsDialog = None
+        
+        # 기본 설정
+        self.settings = {
+            'auto_bg_removal': True,
+            'default_always_on_top': False,
+            'auto_close': 0
+        }
+        
+        # 설정 로드
+        self.loadSettings()
+        
+        # UI 초기화
+        self.initUI()
+        
+        # 화면 중앙에 표시
+        self.centerOnScreen()
+        
+        # 진입 애니메이션
+        QTimer.singleShot(100, self.setupOpenAnimation)
+        
+        # 애니메이션 객체들을 메모리에 유지
+        self.animations = []  # 애니메이션 객체 레퍼런스 보관
+        
+    def loadSettings(self):
+        """설정 파일에서 설정 로드"""
+        try:
+            settings = QSettings("ImageViewer", "Settings")
+            
+            # 배경 제거 자동 제안
+            self.settings['auto_bg_removal'] = settings.value("auto_bg_removal", True, type=bool)
+            
+            # 항상 위에 표시 기본값
+            self.settings['default_always_on_top'] = settings.value("default_always_on_top", False, type=bool)
+            
+            # 자동 종료
+            self.settings['auto_close'] = settings.value("auto_close", 0, type=int)
+        except Exception as e:
+            print(f"설정 로드 오류: {str(e)}")
+    
+    def saveSettings(self):
+        """설정 파일에 설정 저장"""
+        try:
+            settings = QSettings("ImageViewer", "Settings")
+            
+            # 배경 제거 자동 제안
+            settings.setValue("auto_bg_removal", self.settings['auto_bg_removal'])
+            
+            # 항상 위에 표시 기본값
+            settings.setValue("default_always_on_top", self.settings['default_always_on_top'])
+            
+            # 자동 종료
+            settings.setValue("auto_close", self.settings['auto_close'])
+        except Exception as e:
+            print(f"설정 저장 오류: {str(e)}")
+        
+    def loadFromUrl(self):
+        """URL에서 이미지 로드"""
+        try:
+            url = self.urlInput.text().strip()
+            
+            # URL이 비어있는지 확인
+            if not url:
+                QMessageBox.warning(self, "URL 오류", "유효한 URL을 입력하세요.")
+                return
+            
+            # URL 유효성 검사
+            if not (url.startswith('http://') or url.startswith('https://')):
+                QMessageBox.warning(self, "URL 오류", 
+                                "유효한 URL을 입력하세요. (http:// 또는 https://로 시작해야 합니다)")
+                return
+            
+            # 이미지 뷰어가 없으면 생성
+            if not self.viewer:
+                self.viewer = ImageViewer(self)
+                self.viewer.settings = self.settings.copy()
+            
+            # URL에서 이미지 로드
+            if self.viewer.loadImageFromUrl(url):
+                # 선택기 숨기기
+                self.hide()
+        except Exception as e:
+            QMessageBox.critical(self, "오류", f"URL에서 이미지 로드 중 오류 발생: {str(e)}")
+    
+    def initUI(self):
+        """UI 초기화"""
+        # 창 설정
+        self.setWindowTitle('iOS 스타일 이미지 뷰어')
+        self.setFixedSize(580, 600)  # 더 높은 크기로 설정 - 겹침 방지
+        self.setWindowFlags(Qt.Window | Qt.FramelessWindowHint)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        
+        # 메인 레이아웃
+        mainLayout = QVBoxLayout(self)
+        mainLayout.setContentsMargins(0, 0, 0, 0)
+        mainLayout.setSpacing(0)
+        
+        # 배경 프레임 (둥근 모서리 + 그림자)
+        bgFrame = QFrame()
+        bgFrame.setObjectName("bgFrame")
+        bgFrame.setStyleSheet(f"""
+            #bgFrame {{
+                background-color: {IOSColors.with_opacity(IOSColors.BACKGROUND, 0.95)};
+                border-radius: 15px;  /* 더 둥글게 */
+            }}
+        """)
+        
+        # 그림자 효과 - 클래스 멤버로 저장
+        self.selector_shadow = QGraphicsDropShadowEffect(bgFrame)
+        self.selector_shadow.setBlurRadius(25)  # 더 부드러운 그림자
+        self.selector_shadow.setColor(QColor(0, 0, 0, 80))
+        self.selector_shadow.setOffset(0, 10)
+        bgFrame.setGraphicsEffect(self.selector_shadow)
+        
+        bgLayout = QVBoxLayout(bgFrame)
+        bgLayout.setContentsMargins(0, 0, 0, 0)
+        bgLayout.setSpacing(0)
+        
+        # 커스텀 타이틀 바
+        titleBar = CustomTitleBar(self, "이미지 뷰어")
+        titleBar.closeClicked.connect(self.closeWithAnimation)
+        
+        # 설정 버튼 추가
+        self.settingsButton = QToolButton()
+        self.settingsButton.setCursor(Qt.PointingHandCursor)
+        self.settingsButton.setFixedSize(26, 26)
+        self.settingsButton.setStyleSheet(f"""
+            QToolButton {{
+                background-color: transparent;
+                border-radius: 13px;
+            }}
+            QToolButton:hover {{
+                background-color: {IOSColors.with_opacity("#000000", 0.1)};
+            }}
+        """)
+        
+        # 설정 아이콘
+        settings_icon = SVGIcons.svg_to_pixmap(SVGIcons.get_settings(), QSize(16, 16))
+        self.settingsButton.setIcon(QIcon(settings_icon))
+        self.settingsButton.setIconSize(QSize(16, 16))
+        self.settingsButton.clicked.connect(self.showSettingsDialog)
+        
+        # 설정 버튼을 타이틀바에 추가
+        titleBar.addSettingsButton(self.settingsButton)
+        
+        bgLayout.addWidget(titleBar)
+        
+        # 콘텐츠 영역
+        contentFrame = QFrame()
+        contentFrame.setStyleSheet("background: transparent;")
+        contentLayout = QVBoxLayout(contentFrame)
+        contentLayout.setContentsMargins(25, 25, 25, 25)
+        contentLayout.setSpacing(20)
+        
+        # 앱 타이틀 & 설명
+        titleLabel = QLabel("iOS 스타일 이미지 뷰어")
+        titleLabel.setAlignment(Qt.AlignCenter)
+        titleLabel.setStyleSheet(f"""
+            font-size: 24px;
+            font-weight: 700;
+            color: {IOSColors.TEXT_PRIMARY};
+            margin-bottom: 10px;
+        """)
+        contentLayout.addWidget(titleLabel)
+        
+        descLabel = QLabel("다양한 이미지 포맷을 지원하며 투명 배경을 시각화할 수 있습니다.")
+        descLabel.setAlignment(Qt.AlignCenter)
+        descLabel.setStyleSheet(f"""
+            font-size: 16px;
+            color: {IOSColors.TEXT_SECONDARY};
+            margin-bottom: 15px;
+        """)
+        contentLayout.addWidget(descLabel)
+        
+        # URL 입력 섹션
+        urlFrame = QFrame()
+        urlFrame.setStyleSheet(f"""
+            background-color: {IOSColors.BACKGROUND_SECONDARY};
+            border-radius: 15px;
+        """)
+        urlLayout = QVBoxLayout(urlFrame)
+        urlLayout.setContentsMargins(30, 30, 30, 30)  # 증가된 여백
+        urlLayout.setSpacing(20)  # 더 넓은 간격
+        
+        urlHeaderLabel = QLabel("URL에서 이미지 로드")
+        urlHeaderLabel.setStyleSheet(f"""
+            font-size: 18px;
+            font-weight: 600;
+            color: {IOSColors.TEXT_PRIMARY};
+            margin-bottom: 10px;
+        """)
+        urlLayout.addWidget(urlHeaderLabel)
+        
+        urlInputLayout = QHBoxLayout()
+        urlInputLayout.setSpacing(15)
+        urlInputLayout.setContentsMargins(0, 0, 0, 0)
+        
+        self.urlInput = QLineEdit()
+        self.urlInput.setPlaceholderText("https://example.com/image.png")
+        self.urlInput.setStyleSheet(f"""
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid {IOSColors.BACKGROUND_TERTIARY};
+            background-color: white;
+            font-size: 15px;
+            min-height: 24px;
+        """)
+        self.urlInput.returnPressed.connect(self.loadFromUrl)
+        urlInputLayout.addWidget(self.urlInput)
+        
+        urlLoadButton = IOSButton("로드", primary=True)
+        urlLoadButton.clicked.connect(self.loadFromUrl)
+        urlInputLayout.addWidget(urlLoadButton)
+        
+        urlLayout.addLayout(urlInputLayout)
+        contentLayout.addWidget(urlFrame, 1)  # 1의 stretch factor로 첫 번째 섹션이 확장됨
+        
+        # 파일 선택 섹션
+        fileFrame = QFrame()
+        fileFrame.setStyleSheet(f"""
+            background-color: {IOSColors.BACKGROUND_SECONDARY};
+            border-radius: 15px;
+        """)
+        fileLayout = QVBoxLayout(fileFrame)
+        fileLayout.setContentsMargins(30, 30, 30, 30)  # 여백 증가
+        fileLayout.setSpacing(20)  # 간격 증가
+        
+        fileHeaderLabel = QLabel("로컬 이미지 파일 선택")
+        fileHeaderLabel.setStyleSheet(f"""
+            font-size: 18px;
+            font-weight: 600;
+            color: {IOSColors.TEXT_PRIMARY};
+            margin-bottom: 10px;
+        """)
+        fileLayout.addWidget(fileHeaderLabel)
+        
+        supportedFormatsLabel = QLabel("지원 형식: PNG, JPG, JPEG, BMP, GIF")
+        supportedFormatsLabel.setStyleSheet(f"""
+            font-size: 14px;
+            color: {IOSColors.TEXT_SECONDARY};
+        """)
+        fileLayout.addWidget(supportedFormatsLabel)
+        
+        fileSelectButton = IOSButton("이미지 파일 찾아보기", primary=True)
+        fileSelectButton.clicked.connect(self.loadFromFile)
+        fileLayout.addWidget(fileSelectButton)
+        
+        # 드래그 앤 드롭 안내
+        dragDropLabel = QLabel("이미지 파일을 여기에 끌어다 놓을 수도 있습니다")
+        dragDropLabel.setAlignment(Qt.AlignCenter)
+        dragDropLabel.setStyleSheet(f"""
+            color: {IOSColors.TEXT_SECONDARY};
+            font-size: 15px;
+            font-style: italic;
+            margin-top: 8px;
+            padding: 8px 0;
+        """)
+        fileLayout.addWidget(dragDropLabel)
+        
+        contentLayout.addWidget(fileFrame, 1)  # 1의 stretch factor로 두 번째 섹션도 확장됨
+        
+        # 기능 설명 및 단축키
+        featuresFrame = QFrame()
+        featuresFrame.setStyleSheet(f"""
+            background-color: {IOSColors.BACKGROUND_SECONDARY};
+            border-radius: 10px;
+        """)
+        featuresLayout = QVBoxLayout(featuresFrame)
+        featuresLayout.setContentsMargins(15, 15, 15, 15)
+        
+        shortcutsLabel = QLabel("""
+        <b>주요 기능 및 단축키:</b>
+        • 이미지 투명도 조절
+        • 고정 모드 (이미지 영역만 클릭 통과) - P
+        • 확대/축소 - +/-
+        • 이미지 정보 보기 - I
+        • 도움말 - H
+        • 배경 제거 - R
+        • 설정 - S
+        • 방향키로 창 이동, ESC로 닫기
+        """)
+        shortcutsLabel.setStyleSheet(f"""
+            font-size: 13px;
+            color: {IOSColors.TEXT_SECONDARY};
+            line-height: 150%;
+        """)
+        featuresLayout.addWidget(shortcutsLabel)
+        
+        # rembg 관련 정보
+        if REMBG_AVAILABLE:
+            rembgLabel = QLabel("""
+            <b>배경 제거 기능:</b>
+            PNG 파일이 아닌 이미지는 자동으로 배경 제거를 제안받습니다.
+            배경 제거는 머신러닝 기술을 사용하며 시간이 다소 소요될 수 있습니다.
+            """)
+            rembgLabel.setStyleSheet(f"""
+                font-size: 13px;
+                color: {IOSColors.PRIMARY};
+                line-height: 150%;
+                margin-top: 5px;
+            """)
+            featuresLayout.addWidget(rembgLabel)
+        
+        contentLayout.addWidget(featuresFrame)
+        
+        bgLayout.addWidget(contentFrame)
+        mainLayout.addWidget(bgFrame)
+        
+        # 드래그 앤 드롭 지원
+        self.setAcceptDrops(True)
+    
+    def showSettingsDialog(self):
+        """설정 다이얼로그 표시"""
+        try:
+            # 설정 다이얼로그 생성
+            dialog = SettingsDialog(self)
+            
+            # 현재 설정 로드
+            dialog.loadSettings(self.settings)
+            
+            # 다이얼로그가 표시되기 전에 모든 렌더링이 완료되도록 이벤트 처리
+            QApplication.processEvents()
+            
+            # 다이얼로그 표시
+            if dialog.exec_() == QDialog.Accepted:
+                # 설정 변경사항 저장
+                self.settings = dialog.getSettings()
+                
+                # 설정 저장
+                self.saveSettings()
+                
+                # 설정 적용 (뷰어가 있는 경우)
+                if self.viewer:
+                    self.viewer.settings = self.settings.copy()
+                
+                # 상태 메시지 표시
+                QMessageBox.information(self, "설정", "설정이 저장되었습니다")
+        except Exception as e:
+            print(f"설정 다이얼로그 표시 오류: {str(e)}")
+            QMessageBox.warning(self, "설정 오류", f"설정 다이얼로그 표시 중 오류가 발생했습니다:\n{str(e)}")
+    
+    def centerOnScreen(self):
+        """화면 중앙에 배치"""
+        try:
+            screen = QApplication.primaryScreen().availableGeometry()
+            size = self.geometry()
+            self.move(
+                (screen.width() - size.width()) // 2,
+                (screen.height() - size.height()) // 2
+            )
+        except Exception as e:
+            print(f"화면 중앙 배치 오류: {str(e)}")
+    
+    def setupOpenAnimation(self):
+        """열림 애니메이션 설정"""
+        try:
+            # 아래에서 위로 슬라이드 업 + 페이드 인
+            self.setWindowOpacity(0.0)
+            
+            # 조금 아래에서 시작
+            original_pos = self.pos()
+            start_pos = QPoint(original_pos.x(), original_pos.y() + 50)
+            self.move(start_pos)
+            
+            # 애니메이션 객체를 클래스 멤버로 저장
+            self.selector_pos_anim = QPropertyAnimation(self, b"pos")
+            self.selector_pos_anim.setDuration(350)
+            self.selector_pos_anim.setStartValue(start_pos)
+            self.selector_pos_anim.setEndValue(original_pos)
+            self.selector_pos_anim.setEasingCurve(QEasingCurve.OutCubic)
+            
+            self.selector_opacity_anim = QPropertyAnimation(self, b"windowOpacity")
+            self.selector_opacity_anim.setDuration(350)
+            self.selector_opacity_anim.setStartValue(0.0)
+            self.selector_opacity_anim.setEndValue(1.0)
+            self.selector_opacity_anim.setEasingCurve(QEasingCurve.OutCubic)
+            
+            # 애니메이션 그룹
+            self.selector_anim_group = QParallelAnimationGroup()
+            self.selector_anim_group.addAnimation(self.selector_pos_anim)
+            self.selector_anim_group.addAnimation(self.selector_opacity_anim)
+            
+            # 애니메이션 완료 후 포커스 설정 및 활성화
+            self.selector_anim_group.finished.connect(self.onSelectorAnimationFinished)
+            
+            # 시작
+            self.selector_anim_group.start()
+        except Exception as e:
+            print(f"애니메이션 설정 오류: {str(e)}")
+            self.setWindowOpacity(1.0)
+            self.activateWindow()
+        
+    def onSelectorAnimationFinished(self):
+        """애니메이션 완료 후 처리"""
+        try:
+            self.activateWindow()  # 창 활성화
+            self.raise_()  # 최상위로 가져오기
+            self.setFocus()  # 포커스 설정
+            self.repaint()  # 화면 강제 갱신
+        except Exception as e:
+            print(f"애니메이션 완료 처리 오류: {str(e)}")
+    
+    def closeWithAnimation(self):
+        """애니메이션과 함께 닫기"""
+        try:
+            # 아래로 슬라이드 다운 + 페이드 아웃
+            current_pos = self.pos()
+            end_pos = QPoint(current_pos.x(), current_pos.y() + 50)
+            
+            # 애니메이션 객체를 클래스 멤버로 저장
+            self.close_pos_anim = QPropertyAnimation(self, b"pos")
+            self.close_pos_anim.setDuration(300)
+            self.close_pos_anim.setStartValue(current_pos)
+            self.close_pos_anim.setEndValue(end_pos)
+            self.close_pos_anim.setEasingCurve(QEasingCurve.OutCubic)
+            
+            self.close_opacity_anim = QPropertyAnimation(self, b"windowOpacity")
+            self.close_opacity_anim.setDuration(300)
+            self.close_opacity_anim.setStartValue(1.0)
+            self.close_opacity_anim.setEndValue(0.0)
+            self.close_opacity_anim.setEasingCurve(QEasingCurve.OutCubic)
+            
+            # 애니메이션 그룹
+            self.close_anim_group = QParallelAnimationGroup()
+            self.close_anim_group.addAnimation(self.close_pos_anim)
+            self.close_anim_group.addAnimation(self.close_opacity_anim)
+            
+            # 애니메이션 완료 후 앱 종료
+            self.close_anim_group.finished.connect(QApplication.quit)
+            
+            # 시작
+            self.close_anim_group.start()
+        except Exception as e:
+            print(f"종료 애니메이션 오류: {str(e)}")
+            QApplication.quit()  # 애니메이션 실패시 바로 종료
+    
+    def loadFromFile(self):
+        """파일 선택 대화상자에서 이미지 로드"""
+        try:
+            # 이벤트 루프 처리 (UI 갱신)
+            QApplication.processEvents()
+            
+            file_path, _ = QFileDialog.getOpenFileName(
+                self, "이미지 파일 선택", "", 
+                "이미지 파일 (*.png *.jpg *.jpeg *.bmp *.gif);;PNG 이미지 (*.png);;JPG 이미지 (*.jpg *.jpeg);;BMP 이미지 (*.bmp);;GIF 이미지 (*.gif)"
+            )
+            
+            if file_path:
+                # 이미지 뷰어가 없으면 생성
+                if not self.viewer:
+                    self.viewer = ImageViewer(self)
+                    self.viewer.settings = self.settings.copy()
+                
+                # 파일에서 이미지 로드
+                if self.viewer.loadImageFromFile(file_path):
+                    # 선택기 숨기기
+                    self.hide()
+        except Exception as e:
+            QMessageBox.critical(self, "오류", f"파일 로드 중 오류 발생: {str(e)}")
+    
+    def dragEnterEvent(self, event):
+        """드래그 진입 이벤트 - 이미지 파일만 수락"""
+        try:
+            if event.mimeData().hasUrls():
+                for url in event.mimeData().urls():
+                    if url.isLocalFile():
+                        file_path = url.toLocalFile()
+                        if file_path.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
+                            event.acceptProposedAction()
+                            return
+            
+            event.ignore()
+        except Exception as e:
+            print(f"드래그 진입 이벤트 오류: {str(e)}")
+            event.ignore()
+    
+    def dropEvent(self, event):
+        """드롭 이벤트 - 이미지 로드"""
+        try:
+            if event.mimeData().hasUrls():
+                for url in event.mimeData().urls():
+                    if url.isLocalFile():
+                        file_path = url.toLocalFile()
+                        if file_path.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
+                            try:
+                                # 이미지 뷰어가 없으면 생성
+                                if not self.viewer:
+                                    self.viewer = ImageViewer(self)
+                                    self.viewer.settings = self.settings.copy()
+                                
+                                # 파일에서 이미지 로드
+                                if self.viewer.loadImageFromFile(file_path):
+                                    # 선택기 숨기기
+                                    self.hide()
+                                
+                                event.acceptProposedAction()
+                                return
+                            except Exception as e:
+                                QMessageBox.critical(self, "오류", f"이미지 로드 중 오류 발생: {str(e)}")
+                                event.ignore()
+                                return
+            
+            event.ignore()
+        except Exception as e:
+            print(f"드롭 이벤트 오류: {str(e)}")
+            event.ignore()
+    
+    def closeEvent(self, event):
+        """닫기 이벤트 - 뷰어도 함께 닫기"""
+        try:
+            # 설정 저장
+            self.saveSettings()
+            
+            if self.viewer and self.viewer.isVisible():
+                self.viewer.close()
+            event.accept()
+        except Exception as e:
+            print(f"종료 중 오류: {str(e)}")
+            event.accept()
+
+# 예외 처리 함수 추가
+def exception_hook(exctype, value, traceback):
+    """예외 처리 함수"""
+    print(f"예외 발생: {exctype.__name__}: {value}")
+    sys.__excepthook__(exctype, value, traceback)  # 원래 예외 처리 함수 호출
+    
+    # QApplication이 있는 경우에만 오류 메시지 표시
+    if QApplication.instance():
+        error_msg = QMessageBox()
+        error_msg.setIcon(QMessageBox.Critical)
+        error_msg.setWindowTitle("오류 발생")
+        error_msg.setText(f"예기치 않은 오류가 발생했습니다: {exctype.__name__}")
+        detail_text = f"{value}\n\n디버그 정보:\n{str(traceback)}"
+        error_msg.setDetailedText(detail_text)
+        error_msg.setStandardButtons(QMessageBox.Ok)
+        error_msg.exec_()
+
+# 메인 실행
+if __name__ == "__main__":
+    # 예외 처리 설정
+    sys.excepthook = exception_hook
+    
+    # 고해상도 디스플레이 지원 - QApplication 생성 전에 설정해야 함
+    if hasattr(Qt, 'AA_EnableHighDpiScaling'):
+        QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
+    if hasattr(Qt, 'AA_UseHighDpiPixmaps'):
+        QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
+    
+    try:
+        # 애플리케이션 인스턴스 생성
+        app = QApplication(sys.argv)
+        
+        # 글꼴 설정
+        font = app.font()
+        font.setPointSize(10)  # 기본 글꼴 크기 증가
+        app.setFont(font)
+        
+        # OS별 스타일 적용
+        if sys.platform.startswith('darwin'):  # macOS
+            if 'macintosh' in QStyleFactory.keys():
+                QApplication.setStyle('macintosh')
+        elif sys.platform.startswith('win'):   # Windows
+            if 'windowsvista' in QStyleFactory.keys():
+                QApplication.setStyle('windowsvista')
+        else:  # Linux/기타
+            if 'fusion' in QStyleFactory.keys():
+                QApplication.setStyle('fusion')
+        
+        # 앱 인스턴스 생성 및 표시
+        selector = ImageSelectorApp()
+        
+        # 화면 중앙에 배치
+        screen = app.primaryScreen().availableGeometry()
+        selector.setGeometry(
+            (screen.width() - selector.width()) // 2,
+            (screen.height() - selector.height()) // 2,
+            selector.width(),
+            selector.height()
+        )
+        
+        selector.show()
+        
+        # 애니메이션이 작동하도록 이벤트 처리
+        QTimer.singleShot(10, lambda: QCoreApplication.processEvents())
+        
+        # 애플리케이션 실행
+        sys.exit(app.exec_())
+    except Exception as e:
+        # 예외 처리
+        print(f"오류 발생: {str(e)}")
+        
+        # 메시지 박스 표시
+        error_app = QApplication(sys.argv) if not 'app' in locals() else app
+        QMessageBox.critical(None, "오류", f"앱 실행 중 오류가 발생했습니다:\n{str(e)}")
+        sys.exit(1)
